@@ -3,7 +3,8 @@
 ## Overview
 The WorkItem Updater task updatesthe state for workitems linked to a build.  
 Using this task developers don't need to manually keep track of the state.  
-An example would be to set the state to 'Resolved' as the last step of a build and to 'Deployed' as the last step of a release.
+An example would be to set the state to 'Resolved' as the last step of a build and to 'Deployed' as the last step of a release.  
+With this task it is possible to create an automated Kanban board as shown [here](https://bluebasher.com/Blog/Post/2017/1/devops_with_vsts_the_first_way_kanban#automated_kanban)  
 
 ## Settings
 The task requires the following settings:
