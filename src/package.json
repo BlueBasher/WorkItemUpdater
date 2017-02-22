@@ -1,0 +1,26 @@
+{
+  "scripts": {
+    "build": "tsc -p .",
+    "postbuild": "npm run package",
+    "package": "tfx extension create",
+    "clean": "rimraf ./dist && rimraf ./*.vsix"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.0",
+    "grunt-contrib-copy": "*",
+    "grunt-contrib-jasmine": "*",
+    "grunt-exec": "*",
+    "jasmine": "^2.5.1",
+    "rimraf": "^2.5.4",
+    "tfx-cli": "^0.3.45",
+    "typescript": "^2.2.0"
+  },
+  "dependencies": {
+    "@types/jquery": "^2.0.34",
+    "@types/q": "0.0.32",
+    "vsts-task-sdk": "^0.8.1"
+  },
+  "name": "",
+  "private": true,
+  "version": "0.0.0"
+}

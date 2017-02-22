@@ -1,0 +1,76 @@
+﻿{
+    "id": "7164116a-ed17-48be-9c53-b440b2b1dd2e",
+    "name": "WorkItemUpdater",
+    "friendlyName": "WorkItem Updater",
+    "description": "This task allows to update WorkItems linked to the build.",
+    "author": "Blue Basher",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "version": {
+        "Major": "1",
+        "Minor": "1",
+        "Patch": "2"
+    },
+    "demands": [
+    ],
+    "minimumAgentVersion": "1.91.0",
+    "instanceNameFormat": "WorkItem Updater",
+    "groups": [
+
+    ],
+    "inputs": [
+        {
+            "name": "workItemType",
+            "type": "pickList",
+            "label": "WorkItem Type",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "The type of workitems to update",
+            "properties": {
+                "DisableManageLink": "True"
+            }
+        },
+        {
+            "name": "workItemState",
+            "type": "pickList",
+            "label": "WorkItem State",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "The state to update the workitems to",
+            "properties": {
+                "DisableManageLink": "True"
+            }
+        },
+        {
+            "name": "workItemDone",
+            "type": "boolean",
+            "label": "Move to board column Done",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "Move the workitem to the board column 'Done' for split board columns."
+        }
+    ],
+    "sourceDefinitions": [
+        {
+            "target": "workItemType",
+            "endpoint": "/$(system.teamProject)/_apis/wit/workItemTypes?api-version=1.0",
+            "selector": "jsonpath:$.value[*].name",
+            "authKey": "tfs:teamfoundation"
+        },
+        {
+            "target": "workItemState",
+            "endpoint": "/$(system.teamProject)/_api/_wit/allowedValues?__v=5&fieldId=2",
+            "selector": "jsonpath:$.__wrappedArray[*]",
+            "authKey": "tfs:teamfoundation"
+        }
+    ],
+    "execution": {
+        "PowerShell3": {
+            "target": "task.ps1"
+        }
+    }
+}
