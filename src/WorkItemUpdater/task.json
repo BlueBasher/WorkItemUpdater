@@ -12,8 +12,8 @@
     ],
     "version": {
         "Major": "1",
-        "Minor": "1",
-        "Patch": "2"
+        "Minor": "2",
+        "Patch": "0"
     },
     "demands": [
     ],
@@ -52,6 +52,27 @@
             "defaultValue": "false",
             "required": false,
             "helpMarkDown": "Move the workitem to the board column 'Done' for split board columns."
+        },
+        {
+            "name": "linkBuild",
+            "type": "boolean",
+            "label": "Add Build as Development link",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "Add the build as a Development link to the WorkItem."
+        },
+        {
+            "name": "updateAssignedTo",
+            "type": "pickList",
+            "label": "Update 'Assigned To' with requester of the build",
+            "defaultValue": "Never",
+            "required": true,
+            "helpMarkDown": "Update the 'Assigned To' field of the workitem with the requester of the build.",
+            "options": {
+                "Never": "Never",
+                "Unassigned": "Only if unassigned",
+                "Always": "Always"
+            }
         }
     ],
     "sourceDefinitions": [

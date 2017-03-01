@@ -133,7 +133,6 @@
     <Content Include="WorkItemUpdater\ps_modules\VstsTaskSdk\VstsTaskSdk.psm1" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".vscode\tasks.json" />
     <Content Include="WorkItemUpdater\ps_modules\VstsTaskSdk\Strings\resources.resjson\de-de\resources.resjson" />
     <Content Include="WorkItemUpdater\ps_modules\VstsTaskSdk\Strings\resources.resjson\en-US\resources.resjson" />
     <Content Include="WorkItemUpdater\ps_modules\VstsTaskSdk\Strings\resources.resjson\es-es\resources.resjson" />
