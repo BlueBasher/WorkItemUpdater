@@ -31,3 +31,10 @@ The task requires the following settings:
     - Never
     - Only if unassigned
     - Always
+  
+## Version History
+### 1.2.0
+- Add Build as Development link
+- Update 'Assigned To' with requester of the build
+### 1.1.8
+- Initial Version
