@@ -12,7 +12,7 @@
     ],
     "version": {
         "Major": "1",
-        "Minor": "2",
+        "Minor": "3",
         "Patch": "0"
     },
     "demands": [
@@ -41,6 +41,17 @@
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "The state to update the workitems to",
+            "properties": {
+                "DisableManageLink": "True"
+            }
+        },
+        {
+            "name": "workItemKanbanState",
+            "type": "string",
+            "label": "Board column",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "If defined, the board column to update the workitems to. ",
             "properties": {
                 "DisableManageLink": "True"
             }
