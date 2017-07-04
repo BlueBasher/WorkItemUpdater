@@ -29,6 +29,59 @@ Import-Module .\ps_modules\VstsTaskSdk\VstsTaskSdk.psm1 -Verbose:$true
 
 Trace-VstsEnteringInvocation $MyInvocation
 
+#
+# Invoke a method with optional params by reflection. 
+# This can be used to overcome PS bugs in determining the correct overload candidate method from a .net assembly
+#
+# Remark: this does not work with polymorphic parameters
+function InvokeByReflection
+{
+    param ($obj, $methodName, [Type[]] $parameterTypes, [Object[]] $parameterValues)
+
+    # GetMethod(name, Type[]) could also be used, but the methods tend to have many parameters and to list them all make the code harder to read
+    $publicMethods = $obj.GetType().GetMethods() | Where-Object {($_.Name -eq $methodName) -and  ($_.IsPublic -eq $true)}
+    if ($publicMethods.Count -eq 0)
+	{
+		throw "$methodName not found"
+	}
+
+    foreach ($method in $publicMethods)
+    {
+        $methodParams = $method.GetParameters();
+        if ((ParamTypesMatch $methodParams $parameterTypes) -eq $true) 
+        {
+            $paramValuesAndDefaults = New-Object "System.Collections.Generic.List[Object]"
+            $paramValuesAndDefaults.AddRange($parameterValues);
+
+            for ($i=0; $i -lt ($methodParams.Length - $parameterValues.Length); $i++)
+            {
+                $paramValuesAndDefaults.Add([Type]::Missing);
+            } 
+
+            return $method.Invoke($obj, [Reflection.BindingFlags]::OptionalParamBinding, $null, $paramValuesAndDefaults.ToArray(), [Globalization.CultureInfo]::CurrentCulture)
+        }
+    }
+
+    throw "No suitable overload found for $methodName"
+}
+
+#
+# Returns true if the candidate types match are a subset of method parameter types, on a position by position basis
+# 
+function ParamTypesMatch
+{
+   param ([Reflection.ParameterInfo[]] $methodParams, [Type[]] $candidateTypes)
+
+   for ($i=0; $i -lt $candidateTypes.Length; $i++) {
+       if ($methodParams[$i].ParameterType -ne $candidateTypes[$i])
+       {
+           return $false;
+       }
+   }
+  
+   return (($methodParams | Select-Object -Skip $candidateTypes.Length | Where-Object {$_.IsOptional -eq $false}).Count -eq 0)
+}
+
 function Update-WorkItem {
     [CmdletBinding()]
     param(
@@ -54,7 +107,8 @@ function Update-WorkItem {
         [string]$updateAssignedTo)
 
 	Write-VstsTaskDebug -Message "Found WorkItemRef: $($workItemId)"
-	$workItem = $workItemTrackingHttpClient.GetWorkItemAsync($workItemId, $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations).Result
+	$task = InvokeByReflection $workItemTrackingHttpClient "GetWorkItemAsync" @([int]) ($workItemId, $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations)
+	$workItem = $task.Result
 	Write-VstsTaskDebug -Message "Found WorkItem: $($workItem.Id)"
 	if ($workItem.Fields["System.WorkItemType"] -eq $workItemType)
 	{
@@ -123,7 +177,8 @@ function Update-WorkItem {
 			Write-VstsTaskDebug -Message "Patch: $($assignedToOperation.Path) $($assignedToOperation.Value)"
 		}
 
-		$updatedWorkItem = $workItemTrackingHttpClient.UpdateWorkItemAsync($patch, $workItem.Id).Result
+		$task = InvokeByReflection $workItemTrackingHttpClient "UpdateWorkItemAsync" @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument], [int]) @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument]$patch, $workItem.Id)
+		$updatedWorkItem = $task.Result
 
 		Write-Host "WorkItem $($updatedWorkItem.Id) updated to $($workItemState) $($workItemKanbanState) $($workItemDone)"
 	}
@@ -155,7 +210,8 @@ try {
 
 	$workItemTrackingHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.WorkItemTracking.WebApi.WorkItemTrackingHttpClient
     $buildHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient
-	$workItemsRefs = $buildHttpClient.GetBuildWorkItemsRefsAsync($projectId, $buildId).Result
+	$task = InvokeByReflection $buildHttpClient "GetBuildWorkItemsRefsAsync" @([Guid], [int]) @($projectIdGuid, $buildIdNum)
+	$workItemsRefs = $task.Result
 	foreach ($workItemRef in $workItemsRefs)
 	{
 		Update-WorkItem -workItemTrackingHttpClient $workItemTrackingHttpClient `
