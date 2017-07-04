@@ -208,10 +208,18 @@ try {
     Write-VstsTaskDebug -Message "WorkItemDone $workItemDone"
     Write-VstsTaskDebug -Message "updateAssignedTo $updateAssignedTo"
 
+	Write-VstsTaskDebug -Message "Converting buildId '$buildId' as int"
+	$buildIdNum = $buildId -as [int];
+
+	Write-VstsTaskDebug -Message "Converting projectId '$projectId' as GUID"
+	$projectIdGuid = [GUID]$projectId
+
 	$workItemTrackingHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.WorkItemTracking.WebApi.WorkItemTrackingHttpClient
     $buildHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient
+    Write-VstsTaskDebug -Message "GetBuildWorkItemsRefsAsync $projectId $buildId"
 	$task = InvokeByReflection $buildHttpClient "GetBuildWorkItemsRefsAsync" @([Guid], [int]) @($projectIdGuid, $buildIdNum)
 	$workItemsRefs = $task.Result
+    Write-VstsTaskDebug -Message "Loop workItemsRefs"
 	foreach ($workItemRef in $workItemsRefs)
 	{
 		Update-WorkItem -workItemTrackingHttpClient $workItemTrackingHttpClient `
@@ -225,6 +233,7 @@ try {
 			-requestedFor $requestedFor `
 			-updateAssignedTo $updateAssignedTo
 	}
+    Write-VstsTaskDebug -Message "Finished loop workItemsRefs"
 }
 catch {
  	Write-Host $_.Exception.Message

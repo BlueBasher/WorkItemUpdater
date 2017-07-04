@@ -1,0 +1,75 @@
+{
+    "manifestVersion": 1,
+    "id": "bluebasher-workitemupdater",
+    "version": "1.3.4",
+    "name": "WorkItem Updater",
+    "scopes": [ "vso.work", "vso.work_write" ],
+    "description": "Update the state of work items linked to a build.",
+    "baseUri": "https://localhost",
+    "publisher": "BlueBasher",
+    "public": true,
+    "icons": {
+        "default": "img/logo.png"
+    },
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "tags": [
+        "WorkItem",
+        "DevOps",
+        "State",
+        "Fields",
+        "Relation",
+        "Build",
+        "Build task",
+        "Release",
+        "Release task"
+    ],
+    "links": {
+        "getstarted": {
+            "uri": "https://github.com/BlueBasher/WorkItemUpdater/blob/master/src/overview.md"
+        },
+        "issues": {
+            "uri": "https://github.com/BlueBasher/WorkItemUpdater/issues"
+        },
+        "repository": {
+            "uri": "https://github.com/BlueBasher/WorkItemUpdater"
+        }
+    },
+    "content": {
+        "details": {
+            "path": "overview.md"
+        }
+    },
+    "branding": {
+        "color": "rgb(141, 141, 141)",
+        "theme": "light"
+    },
+    "files": [
+        {
+
+            "path": "img",
+            "addressable": true
+        },
+        {
+            "path": "WorkItemUpdater"
+        }
+    ],
+    "categories": [
+        "Build and release"
+    ],
+    "contributions": [
+        {
+            "id": "bluebasher-workitemupdater",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "type": "ms.vss-distributed-task.task",
+            "properties": {
+                "name": "WorkItemUpdater"
+            }
+        }
+    ]
+}
