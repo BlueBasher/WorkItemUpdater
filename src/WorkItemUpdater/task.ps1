@@ -116,8 +116,6 @@ function Update-WorkItem {
 
 		$kanbanColumn = $workItem.Fields.Keys | Where-Object { $_.EndsWith("Kanban.Column") }
 		Write-VstsTaskDebug -Message "Found KanbanColumn: $($kanbanColumn)"
-		$kanbanField = "/fields/$($kanbanColumn)"
-		$kanbanDoneField = "/fields/$($kanbanColumn).Done"
 
 		$patch = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument
 		$columnOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
@@ -127,22 +125,27 @@ function Update-WorkItem {
 		$patch.Add($columnOperation)
 		Write-VstsTaskDebug -Message "Patch: $($columnOperation.Path) $($columnOperation.Value)"
 
-		if ($workItemKanbanState -ne "")
-		{
+		$kanbanColumn.Split(" ") | ForEach-Object { 
+			$kanbanField = "/fields/$($_)"
+			$kanbanDoneField = "/fields/$($_).Done"
+
+			if ($workItemKanbanState -ne "")
+			{
+				$columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
+				$columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
+				$columnDoneOperation.Path = $kanbanField
+				$columnDoneOperation.Value = $workItemKanbanState
+				$patch.Add($columnDoneOperation)
+				Write-VstsTaskDebug -Message "Patch: $($columnDoneOperation.Path) $($columnDoneOperation.Value)"
+			}
+
 			$columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
 			$columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
-			$columnDoneOperation.Path = $kanbanField
-			$columnDoneOperation.Value = $workItemKanbanState
+			$columnDoneOperation.Path = $kanbanDoneField
+			$columnDoneOperation.Value = $workItemDone
 			$patch.Add($columnDoneOperation)
 			Write-VstsTaskDebug -Message "Patch: $($columnDoneOperation.Path) $($columnDoneOperation.Value)"
 		}
-
-		$columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
-		$columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
-		$columnDoneOperation.Path = $kanbanDoneField
-		$columnDoneOperation.Value = $workItemDone
-		$patch.Add($columnDoneOperation)
-		Write-VstsTaskDebug -Message "Patch: $($columnDoneOperation.Path) $($columnDoneOperation.Value)"
 
 		if ($linkBuild -eq $true)
 		{
