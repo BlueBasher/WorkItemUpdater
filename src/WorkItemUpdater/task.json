@@ -13,7 +13,7 @@
     "version": {
         "Major": "1",
         "Minor": "3",
-        "Patch": "6"
+        "Patch": "7"
     },
     "demands": [
     ],
@@ -39,8 +39,19 @@
             "type": "pickList",
             "label": "WorkItem State",
             "defaultValue": "",
-            "required": true,
+            "required": false,
             "helpMarkDown": "The state to update the workitems to",
+            "properties": {
+                "DisableManageLink": "True"
+            }
+        },
+        {
+            "name": "workItemKanbanLane",
+            "type": "string",
+            "label": "Board Swimlane",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "If defined, the board Swimlane to update the workitems to. ",
             "properties": {
                 "DisableManageLink": "True"
             }
