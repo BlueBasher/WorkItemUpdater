@@ -93,8 +93,10 @@ function Update-WorkItem {
         [int]$buildId,
         [Parameter(Mandatory = $true)]
         [string]$workItemType,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]$workItemState,
+        [Parameter(Mandatory = $false)]
+        [string]$workItemKanbanLane,
         [Parameter(Mandatory = $false)]
         [string]$workItemKanbanState,
         [Parameter(Mandatory = $true)]
@@ -114,16 +116,35 @@ function Update-WorkItem {
 	{
 		Write-Host "Updating WorkItem $($workItem.Id)"
 
+		$kanbanLane = $workItem.Fields.Keys | Where-Object { $_.EndsWith("Kanban.Lane") }
+		Write-VstsTaskDebug -Message "Found Kanban Lane: $($kanbanLane)"
+
 		$kanbanColumn = $workItem.Fields.Keys | Where-Object { $_.EndsWith("Kanban.Column") }
 		Write-VstsTaskDebug -Message "Found KanbanColumn: $($kanbanColumn)"
 
 		$patch = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument
-		$columnOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
-		$columnOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
-		$columnOperation.Path = "/fields/System.State"
-		$columnOperation.Value = $workItemState
-		$patch.Add($columnOperation)
-		Write-VstsTaskDebug -Message "Patch: $($columnOperation.Path) $($columnOperation.Value)"
+
+		if ($workItemState -ne "")
+		{
+			$columnOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
+			$columnOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
+			$columnOperation.Path = "/fields/System.State"
+			$columnOperation.Value = $workItemState
+			$patch.Add($columnOperation)
+			Write-VstsTaskDebug -Message "Patch: $($columnOperation.Path) $($columnOperation.Value)"
+		}
+
+		if ($workItemKanbanLane -ne "")
+		{
+			$kanbanLane.Split(" ") | ForEach-Object {
+				$columnBoardLane = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
+				$columnBoardLane.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
+				$columnBoardLane.Path = "/fields/$($_)"
+				$columnBoardLane.Value = $workItemKanbanLane
+				$patch.Add($columnBoardLane)
+				Write-VstsTaskDebug -Message "Patch: $($columnBoardLane.Path) $($columnBoardLane.Value)"
+			}
+		}
 
 		$kanbanColumn.Split(" ") | ForEach-Object { 
 			$kanbanField = "/fields/$($_)"
@@ -197,6 +218,7 @@ try {
 	$requestedFor = Get-VstsTaskVariable -Name "Build.RequestedFor"
 	$workItemType = Get-VstsInput -Name "workItemType"
 	$workItemState = Get-VstsInput -Name "workItemState"
+	$workItemKanbanLane = Get-VstsInput -Name "workItemKanbanLane"
 	$workItemKanbanState = Get-VstsInput -Name "workItemKanbanState"
 	$workItemDone = Get-VstsInput -Name "workItemDone" -AsBool 
 	$linkBuild = Get-VstsInput -Name "linkBuild" -AsBool
@@ -207,6 +229,7 @@ try {
     Write-VstsTaskDebug -Message "requestedFor $requestedFor"
     Write-VstsTaskDebug -Message "workItemType $workItemType"
     Write-VstsTaskDebug -Message "WorkItemState $workItemState"
+    Write-VstsTaskDebug -Message "updateWorkItemKanbanLane $workItemKanbanLane"
     Write-VstsTaskDebug -Message "WorkItemKanbanState $workItemKanbanState"
     Write-VstsTaskDebug -Message "WorkItemDone $workItemDone"
     Write-VstsTaskDebug -Message "updateAssignedTo $updateAssignedTo"
@@ -230,6 +253,7 @@ try {
         	-buildId $buildId `
 			-workItemType $workItemType `
 			-workItemState $workItemState `
+			-workItemKanbanLane $workItemKanbanLane `
 			-workItemKanbanState $workItemKanbanState `
 			-workItemDone $workItemDone `
 			-linkBuild $linkBuild `
