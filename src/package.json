@@ -17,8 +17,7 @@
   },
   "dependencies": {
     "@types/jquery": "^2.0.34",
-    "@types/q": "0.0.32",
-    "vsts-task-sdk": "^0.8.1"
+    "@types/q": "0.0.32"
   },
   "name": "",
   "private": true,
