@@ -263,7 +263,7 @@ try {
         	-buildId $buildId `
 			-workItemType $workItemType `
 			-workItemState $workItemState `
-			-workItemCurrentState $workItemCurrentState
+			-workItemCurrentState $workItemCurrentState `
 			-workItemKanbanLane $workItemKanbanLane `
 			-workItemKanbanState $workItemKanbanState `
 			-workItemDone $workItemDone `
