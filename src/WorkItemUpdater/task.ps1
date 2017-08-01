@@ -92,9 +92,9 @@ function Update-WorkItem {
         [Parameter(Mandatory = $true)]
         [int]$buildId,
         [Parameter(Mandatory = $true)]
-		[string]$workItemType,
+        [string]$workItemType,
         [Parameter(Mandatory = $false)]
-		[string]$workItemCurrentState,
+        [string]$workItemCurrentState,
         [Parameter(Mandatory = $false)]
         [string]$workItemState,
         [Parameter(Mandatory = $false)]
