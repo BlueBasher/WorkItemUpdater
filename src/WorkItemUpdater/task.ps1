@@ -92,7 +92,9 @@ function Update-WorkItem {
         [Parameter(Mandatory = $true)]
         [int]$buildId,
         [Parameter(Mandatory = $true)]
-        [string]$workItemType,
+		[string]$workItemType,
+        [Parameter(Mandatory = $false)]
+		[string]$workItemCurrentState,
         [Parameter(Mandatory = $false)]
         [string]$workItemState,
         [Parameter(Mandatory = $false)]
@@ -114,6 +116,12 @@ function Update-WorkItem {
 	Write-VstsTaskDebug -Message "Found WorkItem: $($workItem.Id)"
 	if ($workItem.Fields["System.WorkItemType"] -eq $workItemType)
 	{
+        if ($workItemCurrentState -ne "" -and $workItemCurrentState -split ',' -notcontains $workItem.Fields["System.State"])
+        {
+		    Write-VstsTaskDebug -Message "Skipped currently $(workItem.Fields["System.State"]) WorkItem: $($workItem.Id)"
+            return
+        }
+
 		Write-Host "Updating WorkItem $($workItem.Id)"
 
 		$kanbanLane = $workItem.Fields.Keys | Where-Object { $_.EndsWith("Kanban.Lane") }
@@ -218,6 +226,7 @@ try {
 	$requestedFor = Get-VstsTaskVariable -Name "Build.RequestedFor"
 	$workItemType = Get-VstsInput -Name "workItemType"
 	$workItemState = Get-VstsInput -Name "workItemState"
+	$workItemCurrentState = Get-VstsInput -Name "workItemCurrentState"
 	$workItemKanbanLane = Get-VstsInput -Name "workItemKanbanLane"
 	$workItemKanbanState = Get-VstsInput -Name "workItemKanbanState"
 	$workItemDone = Get-VstsInput -Name "workItemDone" -AsBool 
@@ -229,6 +238,7 @@ try {
     Write-VstsTaskDebug -Message "requestedFor $requestedFor"
     Write-VstsTaskDebug -Message "workItemType $workItemType"
     Write-VstsTaskDebug -Message "WorkItemState $workItemState"
+    Write-VstsTaskDebug -Message "workItemCurrentState $workItemCurrentState"
     Write-VstsTaskDebug -Message "updateWorkItemKanbanLane $workItemKanbanLane"
     Write-VstsTaskDebug -Message "WorkItemKanbanState $workItemKanbanState"
     Write-VstsTaskDebug -Message "WorkItemDone $workItemDone"
@@ -253,6 +263,7 @@ try {
         	-buildId $buildId `
 			-workItemType $workItemType `
 			-workItemState $workItemState `
+			-workItemCurrentState $workItemCurrentState
 			-workItemKanbanLane $workItemKanbanLane `
 			-workItemKanbanState $workItemKanbanState `
 			-workItemDone $workItemDone `

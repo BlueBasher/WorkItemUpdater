@@ -22,6 +22,8 @@ The task requires the following settings:
   - Only linked workitems of this type will be updated.
 - WorkItem State
   - The state that the workitem should be updated to.
+- WorkItem Current State
+  - The state that the workitem should be updated from. Multiple values can be provided. Empty to update from any state.
 - Move to board column Done
   - If the workitem is displayed in a Kanban column that has been split into Doing and Done, this indicates if the workitem should be moved to the Done column.
 - Add Build as Development link
