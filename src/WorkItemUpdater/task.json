@@ -47,11 +47,11 @@
         },
         {
             "name": "workItemCurrentState",
-            "type": "pickList",
+            "type": "string",
             "label": "WorkItem Current State",
             "defaultValue": "",
             "required": false,
-            "helpMarkDown": "If defined, the state to update the workitems from. Leave empty to update from any state. Separate different valid states with ','",
+            "helpMarkDown": "If defined, only upadte workitems that currently have this state. Leave empty to update from any state. Separate different valid states with ','",
             "properties": {
                 "DisableManageLink": "True"
             }
