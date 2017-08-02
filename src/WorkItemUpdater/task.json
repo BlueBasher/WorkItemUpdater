@@ -51,7 +51,7 @@
             "label": "WorkItem Current State",
             "defaultValue": "",
             "required": false,
-            "helpMarkDown": "If defined, only upadte workitems that currently have this state. Leave empty to update from any state. Separate different valid states with ','",
+            "helpMarkDown": "If defined, only update workitems that currently have this state. Leave empty to update from any state. Separate different valid states with ','",
             "properties": {
                 "DisableManageLink": "True"
             }
