@@ -118,7 +118,7 @@ function Update-WorkItem {
 	{
         if ($workItemCurrentState -ne "" -and $workItemCurrentState -split ',' -notcontains $workItem.Fields["System.State"])
         {
-		    Write-VstsTaskDebug -Message "Skipped currently $(workItem.Fields["System.State"]) WorkItem: $($workItem.Id)"
+		    Write-VstsTaskDebug -Message "Skipped currently $($workItem.Fields["System.State"]) WorkItem: $($workItem.Id)"
             return
         }
 
