@@ -46,6 +46,17 @@
             }
         },
         {
+            "name": "workItemCurrentState",
+            "type": "pickList",
+            "label": "WorkItem Current State",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "If defined, the state to update the workitems from. Leave empty to update from any state. Separate different valid states with ','",
+            "properties": {
+                "DisableManageLink": "True"
+            }
+        },
+        {
             "name": "workItemKanbanLane",
             "type": "string",
             "label": "Board Swimlane",
