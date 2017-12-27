@@ -288,7 +288,7 @@ try {
 catch {
     Write-Host $_.Exception.Message
     Write-Host $_.Exception.StackTrace
-    Write-VstsSetResult -Result "Error updating workitems"
+    Write-VstsSetResult -Result "Failed" -Message "Error updating workitems"
 }
 finally {
     Trace-VstsLeavingInvocation $MyInvocation
