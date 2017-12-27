@@ -215,10 +215,11 @@ function Update-WorkItem {
             Write-VstsTaskDebug -Message "Patch: $($assignedToOperation.Path) $($assignedToOperation.Value)"
         }
 
+        Write-VstsTaskDebug -Message "Start InvokeByReflection for UpdateWorkItemAsync"
         $task = InvokeByReflection $workItemTrackingHttpClient "UpdateWorkItemAsync" @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument], [int]) @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument]$patch, $workItem.Id)
-        $updatedWorkItem = $task.Result
+        Write-Host "WorkItem $($workItemId) updated to $($workItemState) $($workItemKanbanState) $($workItemDone)"
 
-        Write-Host "WorkItem $($updatedWorkItem.Id) updated to $($workItemState) $($workItemKanbanState) $($workItemDone)"
+        Write-Host $task
     }
     else
     {
