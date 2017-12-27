@@ -113,7 +113,7 @@
             "label": "Update 'Assigned To' with",
             "defaultValue": "Requester",
             "required": true,
-            "visibleRule": "updateAssignedToWith != Never",
+            "visibleRule": "updateAssignedTo != Never",
             "helpMarkDown": "Update the 'Assigned To' field of the workitem with the requester of the build or a fixed user.",
             "options": {
                 "Requester": "Requester of the build",
@@ -126,7 +126,7 @@
             "label": "Assign to",
             "defaultValue": "",
             "required": true,
-            "visibleRule": "updateAssignedToWith = FixedUser",
+            "visibleRule": "updateAssignedTo != Never && updateAssignedToWith = FixedUser",
             "helpMarkDown": "The user to assign the workitem to.",
             "properties": {
                 "DisableManageLink": "True"
