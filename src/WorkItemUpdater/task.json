@@ -97,14 +97,39 @@
         {
             "name": "updateAssignedTo",
             "type": "pickList",
-            "label": "Update 'Assigned To' with requester of the build",
+            "label": "Update 'Assigned To'",
             "defaultValue": "Never",
             "required": true,
-            "helpMarkDown": "Update the 'Assigned To' field of the workitem with the requester of the build.",
+            "helpMarkDown": "Update the 'Assigned To' field of the workitem.",
             "options": {
                 "Never": "Never",
                 "Unassigned": "Only if unassigned",
                 "Always": "Always"
+            }
+        },
+        {
+            "name": "updateAssignedToWith",
+            "type": "pickList",
+            "label": "Update 'Assigned To' with",
+            "defaultValue": "Requester",
+            "required": true,
+            "visibleRule": "updateAssignedToWith != Never",
+            "helpMarkDown": "Update the 'Assigned To' field of the workitem with the requester of the build or a fixed user.",
+            "options": {
+                "Requester": "Requester of the build",
+                "FixedUser": "Fixed user"
+            }
+        },
+        {
+            "name": "assignedTo",
+            "type": "string",
+            "label": "Assign to",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "updateAssignedToWith = FixedUser",
+            "helpMarkDown": "The user to assign the workitem to.",
+            "properties": {
+                "DisableManageLink": "True"
             }
         }
     ],
