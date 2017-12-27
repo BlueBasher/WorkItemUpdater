@@ -10,18 +10,22 @@ $httpFormatingDll = [System.IO.Path]::Combine($directory, "System.Net.Http.Forma
 $onAssemblyResolve = [System.ResolveEventHandler]{
     param($sender, $e)
 
-    if ($e.Name -like 'Newtonsoft.Json, *') {
-        Write-Verbose "Resolving '$($e.Name)'"
-        return [System.Reflection.Assembly]::LoadFrom($newtonsoftDll)
-    }
-    else
-    {
-        if ($e.Name -like 'System.Net.Http.Formatting, *') {
-            Write-Verbose "Resolving '$($e.Name)'"
-            return [System.Reflection.Assembly]::LoadFrom($httpFormatingDll)
-        }
-    }
-    return $null
+	if ($e.Name -like 'Newtonsoft.Json, *') {
+		Write-Host "Resolving '$($newtonsoftDll)'"
+		$result = [System.Reflection.Assembly]::LoadFrom($newtonsoftDll)
+		Write-Host "Resolved '$($e.Name)'"
+		return $result;
+	}
+	else
+	{
+		if ($e.Name -like 'System.Net.Http.Formatting, *') {
+			Write-Host "Resolving '$($httpFormatingDll)'"
+			$result = [System.Reflection.Assembly]::LoadFrom($httpFormatingDll)
+			Write-Host "Resolved '$($e.Name)'"
+			return $result;
+		}
+	}
+    return $null;
 }
 [System.AppDomain]::CurrentDomain.add_AssemblyResolve($onAssemblyResolve)
 
@@ -106,7 +110,7 @@ function Update-WorkItem {
         [Parameter(Mandatory = $true)]
         [bool]$linkBuild,
         [Parameter(Mandatory = $true)]
-        [string]$requestedFor,
+        [string]$assignedTo,
         [Parameter(Mandatory = $true)]
         [string]$updateAssignedTo)
 
@@ -143,7 +147,7 @@ function Update-WorkItem {
             Write-VstsTaskDebug -Message "Patch: $($columnOperation.Path) $($columnOperation.Value)"
         }
 
-        if ($workItemKanbanLane -ne "")
+        if ($workItemKanbanLane -ne "" -and $kanbanLane -ne "" -and $kanbanLane -ne $null)
         {
             $kanbanLane.Split(" ") | ForEach-Object {
                 $columnBoardLane = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
@@ -155,7 +159,7 @@ function Update-WorkItem {
             }
         }
 
-        if ($workItemKanbanState -ne "")
+        if ($workItemKanbanState -ne "" -and $kanbanColumn -ne "" -and $kanbanColumn -ne $null)
         {
             $kanbanColumn.Split(" ") | ForEach-Object { 
                 $columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
@@ -167,13 +171,15 @@ function Update-WorkItem {
             }
         }
 
-        $kanbanDoneColumn.Split(" ") | ForEach-Object { 
-            $columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
-            $columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
-            $columnDoneOperation.Path = "/fields/$($_)"
-            $columnDoneOperation.Value = $workItemDone
-            $patch.Add($columnDoneOperation)
-            Write-VstsTaskDebug -Message "Patch: $($columnDoneOperation.Path) $($columnDoneOperation.Value)"
+        if ($kanbanDoneColumn -ne "" -and $kanbanDoneColumn -ne $null) {
+            $kanbanDoneColumn.Split(" ") | ForEach-Object { 
+                $columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
+                $columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
+                $columnDoneOperation.Path = "/fields/$($_)"
+                $columnDoneOperation.Value = $workItemDone
+                $patch.Add($columnDoneOperation)
+                Write-VstsTaskDebug -Message "Patch: $($columnDoneOperation.Path) $($columnDoneOperation.Value)"
+            }
         }
 
         if ($linkBuild -eq $true)
@@ -204,7 +210,7 @@ function Update-WorkItem {
             $assignedToOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
             $assignedToOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
             $assignedToOperation.Path = "/fields/System.AssignedTo"
-            $assignedToOperation.Value = $requestedFor
+            $assignedToOperation.Value = $assignedTo
             $patch.Add($assignedToOperation)
             Write-VstsTaskDebug -Message "Patch: $($assignedToOperation.Path) $($assignedToOperation.Value)"
         }
@@ -221,6 +227,12 @@ function Update-WorkItem {
 }
 
 try {
+    Write-Host "Add-Type Services.WebApi"
+    Add-Type -LiteralPath "Microsoft.VisualStudio.Services.WebApi.dll"
+    Write-Host "Add-Type WorkItemTracking.WebApi"
+    Add-Type -LiteralPath "Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll"
+    Write-Host "Added Types"
+
     $buildId = Get-VstsTaskVariable -Name "Build.BuildId"
     $projectId = Get-VstsTaskVariable -Name "System.TeamProjectId"
     $requestedFor = Get-VstsTaskVariable -Name "Build.RequestedFor"
@@ -232,6 +244,8 @@ try {
     $workItemDone = Get-VstsInput -Name "workItemDone" -AsBool 
     $linkBuild = Get-VstsInput -Name "linkBuild" -AsBool
     $updateAssignedTo = Get-VstsInput -Name "updateAssignedTo"
+    $updateAssignedToWith = Get-VstsInput -Name "updateAssignedToWith"
+    $assignedTo = Get-VstsInput -Name "assignedTo"
 
     Write-VstsTaskDebug -Message "BuildId $buildId"
     Write-VstsTaskDebug -Message "ProjectId $projectId"
@@ -243,12 +257,21 @@ try {
     Write-VstsTaskDebug -Message "WorkItemKanbanState $workItemKanbanState"
     Write-VstsTaskDebug -Message "WorkItemDone $workItemDone"
     Write-VstsTaskDebug -Message "updateAssignedTo $updateAssignedTo"
+    Write-VstsTaskDebug -Message "updateAssignedToWith $updateAssignedToWith"
+    Write-VstsTaskDebug -Message "assignedTo $assignedTo"
 
     Write-VstsTaskDebug -Message "Converting buildId '$buildId' as int"
     $buildIdNum = $buildId -as [int];
 
     Write-VstsTaskDebug -Message "Converting projectId '$projectId' as GUID"
     $projectIdGuid = [GUID]$projectId
+
+    if ($updateAssignedToWith -eq "FixedUser") {
+        Write-VstsTaskDebug -Message "Using fixed user '$assignedTo' as assignedTo."
+    } else {
+        Write-VstsTaskDebug -Message "Setting assignedTo to requester for build '$requestedFor'."
+        $assignedTo = $requestedFor
+    }
 
     $workItemTrackingHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.WorkItemTracking.WebApi.WorkItemTrackingHttpClient
     $buildHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient
@@ -268,7 +291,7 @@ try {
             -workItemKanbanState $workItemKanbanState `
             -workItemDone $workItemDone `
             -linkBuild $linkBuild `
-            -requestedFor $requestedFor `
+            -assignedTo $assignedTo `
             -updateAssignedTo $updateAssignedTo
     }
     Write-VstsTaskDebug -Message "Finished loop workItemsRefs"
@@ -276,7 +299,7 @@ try {
 catch {
     Write-Host $_.Exception.Message
     Write-Host $_.Exception.StackTrace
-    Write-VstsSetResult -Result "Error updating workitems"
+    Write-VstsSetResult -Result "Failed" -Message "Error updating workitems"
 }
 finally {
     Trace-VstsLeavingInvocation $MyInvocation
