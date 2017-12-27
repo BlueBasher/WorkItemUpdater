@@ -143,7 +143,7 @@ function Update-WorkItem {
             Write-VstsTaskDebug -Message "Patch: $($columnOperation.Path) $($columnOperation.Value)"
         }
 
-        if ($workItemKanbanLane -ne "")
+        if ($workItemKanbanLane -ne "" -and $kanbanLane -ne "" -and $kanbanLane -ne $null)
         {
             $kanbanLane.Split(" ") | ForEach-Object {
                 $columnBoardLane = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
@@ -155,7 +155,7 @@ function Update-WorkItem {
             }
         }
 
-        if ($workItemKanbanState -ne "")
+        if ($workItemKanbanState -ne "" -and $kanbanColumn -ne "" -and $kanbanColumn -ne $null)
         {
             $kanbanColumn.Split(" ") | ForEach-Object { 
                 $columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
@@ -167,13 +167,15 @@ function Update-WorkItem {
             }
         }
 
-        $kanbanDoneColumn.Split(" ") | ForEach-Object { 
-            $columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
-            $columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
-            $columnDoneOperation.Path = "/fields/$($_)"
-            $columnDoneOperation.Value = $workItemDone
-            $patch.Add($columnDoneOperation)
-            Write-VstsTaskDebug -Message "Patch: $($columnDoneOperation.Path) $($columnDoneOperation.Value)"
+        if ($kanbanDoneColumn -ne "" -and $kanbanDoneColumn -ne $null) {
+            $kanbanDoneColumn.Split(" ") | ForEach-Object { 
+                $columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
+                $columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
+                $columnDoneOperation.Path = "/fields/$($_)"
+                $columnDoneOperation.Value = $workItemDone
+                $patch.Add($columnDoneOperation)
+                Write-VstsTaskDebug -Message "Patch: $($columnDoneOperation.Path) $($columnDoneOperation.Value)"
+            }
         }
 
         if ($linkBuild -eq $true)
