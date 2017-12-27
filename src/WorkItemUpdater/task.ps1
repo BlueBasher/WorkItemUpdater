@@ -10,18 +10,22 @@ $httpFormatingDll = [System.IO.Path]::Combine($directory, "System.Net.Http.Forma
 $onAssemblyResolve = [System.ResolveEventHandler]{
     param($sender, $e)
 
-    if ($e.Name -like 'Newtonsoft.Json, *') {
-        Write-Verbose "Resolving '$($e.Name)'"
-        return [System.Reflection.Assembly]::LoadFrom($newtonsoftDll)
-    }
-    else
-    {
-        if ($e.Name -like 'System.Net.Http.Formatting, *') {
-            Write-Verbose "Resolving '$($e.Name)'"
-            return [System.Reflection.Assembly]::LoadFrom($httpFormatingDll)
-        }
-    }
-    return $null
+	if ($e.Name -like 'Newtonsoft.Json, *') {
+		Write-Host "Resolving '$($newtonsoftDll)'"
+		$result = [System.Reflection.Assembly]::LoadFrom($newtonsoftDll)
+		Write-Host "Resolved '$($e.Name)'"
+		return $result;
+	}
+	else
+	{
+		if ($e.Name -like 'System.Net.Http.Formatting, *') {
+			Write-Host "Resolving '$($httpFormatingDll)'"
+			$result = [System.Reflection.Assembly]::LoadFrom($httpFormatingDll)
+			Write-Host "Resolved '$($e.Name)'"
+			return $result;
+		}
+	}
+    return $null;
 }
 [System.AppDomain]::CurrentDomain.add_AssemblyResolve($onAssemblyResolve)
 
@@ -223,6 +227,12 @@ function Update-WorkItem {
 }
 
 try {
+    Write-Host "Add-Type Services.WebApi"
+    Add-Type -LiteralPath "Microsoft.VisualStudio.Services.WebApi.dll"
+    Write-Host "Add-Type WorkItemTracking.WebApi"
+    Add-Type -LiteralPath "Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll"
+    Write-Host "Added Types"
+
     $buildId = Get-VstsTaskVariable -Name "Build.BuildId"
     $projectId = Get-VstsTaskVariable -Name "System.TeamProjectId"
     $requestedFor = Get-VstsTaskVariable -Name "Build.RequestedFor"
