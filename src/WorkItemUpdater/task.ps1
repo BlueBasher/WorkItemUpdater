@@ -217,9 +217,16 @@ function Update-WorkItem {
 
         Write-VstsTaskDebug -Message "Start InvokeByReflection for UpdateWorkItemAsync"
         $task = InvokeByReflection $workItemTrackingHttpClient "UpdateWorkItemAsync" @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument], [int]) @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument]$patch, $workItem.Id)
-        Write-Host "WorkItem $($workItemId) updated to $($workItemState) $($workItemKanbanState) $($workItemDone)"
-
-        Write-Host $task
+        $updatedWorkItem = $task.Result
+        Write-Host "WorkItem $($workItemId) updated to State: $($workItemState), KanbanState: $($workItemKanbanState), KanbanDone $($workItemDone)"
+        if ($updatedWorkItem -ne $null -and $updatedWorkItem.Id -ne $null)
+        {
+            Write-VstsTaskDebug -Message "Updated WorkItem Id: $($updatedWorkItem.Id)"
+        }
+        else
+        {
+            Write-VstsTaskDebug -Message "Updated WorkItem Id is NULL"
+        }
     }
     else
     {
