@@ -117,6 +117,7 @@
             "helpMarkDown": "Update the 'Assigned To' field of the workitem with the requester of the build or a fixed user.",
             "options": {
                 "Requester": "Requester of the build",
+                "Creator": "Creator of the workitem",
                 "FixedUser": "Fixed user"
             }
         },

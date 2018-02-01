@@ -7,24 +7,23 @@ param()
 $directory = [System.IO.Path]::GetFullPath("$PSScriptRoot\")
 $newtonsoftDll = [System.IO.Path]::Combine($directory, "Newtonsoft.Json.dll")
 $httpFormatingDll = [System.IO.Path]::Combine($directory, "System.Net.Http.Formatting.dll")
-$onAssemblyResolve = [System.ResolveEventHandler]{
+$onAssemblyResolve = [System.ResolveEventHandler] {
     param($sender, $e)
 
-	if ($e.Name -like 'Newtonsoft.Json, *') {
-		Write-Host "Resolving '$($newtonsoftDll)'"
-		$result = [System.Reflection.Assembly]::LoadFrom($newtonsoftDll)
-		Write-Host "Resolved '$($e.Name)'"
-		return $result;
-	}
-	else
-	{
-		if ($e.Name -like 'System.Net.Http.Formatting, *') {
-			Write-Host "Resolving '$($httpFormatingDll)'"
-			$result = [System.Reflection.Assembly]::LoadFrom($httpFormatingDll)
-			Write-Host "Resolved '$($e.Name)'"
-			return $result;
-		}
-	}
+    if ($e.Name -like 'Newtonsoft.Json, *') {
+        Write-Host "Resolving '$($newtonsoftDll)'"
+        $result = [System.Reflection.Assembly]::LoadFrom($newtonsoftDll)
+        Write-Host "Resolved '$($e.Name)'"
+        return $result;
+    }
+    else {
+        if ($e.Name -like 'System.Net.Http.Formatting, *') {
+            Write-Host "Resolving '$($httpFormatingDll)'"
+            $result = [System.Reflection.Assembly]::LoadFrom($httpFormatingDll)
+            Write-Host "Resolved '$($e.Name)'"
+            return $result;
+        }
+    }
     return $null;
 }
 [System.AppDomain]::CurrentDomain.add_AssemblyResolve($onAssemblyResolve)
@@ -38,27 +37,22 @@ Trace-VstsEnteringInvocation $MyInvocation
 # This can be used to overcome PS bugs in determining the correct overload candidate method from a .net assembly
 #
 # Remark: this does not work with polymorphic parameters
-function InvokeByReflection
-{
+function InvokeByReflection {
     param ($obj, $methodName, [Type[]] $parameterTypes, [Object[]] $parameterValues)
 
     # GetMethod(name, Type[]) could also be used, but the methods tend to have many parameters and to list them all make the code harder to read
-    $publicMethods = $obj.GetType().GetMethods() | Where-Object {($_.Name -eq $methodName) -and  ($_.IsPublic -eq $true)}
-    if ($publicMethods.Count -eq 0)
-    {
+    $publicMethods = $obj.GetType().GetMethods() | Where-Object {($_.Name -eq $methodName) -and ($_.IsPublic -eq $true)}
+    if ($publicMethods.Count -eq 0) {
         throw "$methodName not found"
     }
 
-    foreach ($method in $publicMethods)
-    {
+    foreach ($method in $publicMethods) {
         $methodParams = $method.GetParameters();
-        if ((ParamTypesMatch $methodParams $parameterTypes) -eq $true) 
-        {
+        if ((ParamTypesMatch $methodParams $parameterTypes) -eq $true) {
             $paramValuesAndDefaults = New-Object "System.Collections.Generic.List[Object]"
             $paramValuesAndDefaults.AddRange($parameterValues);
 
-            for ($i=0; $i -lt ($methodParams.Length - $parameterValues.Length); $i++)
-            {
+            for ($i = 0; $i -lt ($methodParams.Length - $parameterValues.Length); $i++) {
                 $paramValuesAndDefaults.Add([Type]::Missing);
             } 
 
@@ -72,18 +66,16 @@ function InvokeByReflection
 #
 # Returns true if the candidate types match are a subset of method parameter types, on a position by position basis
 # 
-function ParamTypesMatch
-{
-   param ([Reflection.ParameterInfo[]] $methodParams, [Type[]] $candidateTypes)
+function ParamTypesMatch {
+    param ([Reflection.ParameterInfo[]] $methodParams, [Type[]] $candidateTypes)
 
-   for ($i=0; $i -lt $candidateTypes.Length; $i++) {
-       if ($methodParams[$i].ParameterType -ne $candidateTypes[$i])
-       {
-           return $false;
-       }
-   }
+    for ($i = 0; $i -lt $candidateTypes.Length; $i++) {
+        if ($methodParams[$i].ParameterType -ne $candidateTypes[$i]) {
+            return $false;
+        }
+    }
   
-   return (($methodParams | Select-Object -Skip $candidateTypes.Length | Where-Object {$_.IsOptional -eq $false}).Count -eq 0)
+    return (($methodParams | Select-Object -Skip $candidateTypes.Length | Where-Object {$_.IsOptional -eq $false}).Count -eq 0)
 }
 
 function Update-WorkItem {
@@ -92,7 +84,7 @@ function Update-WorkItem {
         [Parameter(Mandatory = $true)]
         [Microsoft.TeamFoundation.WorkItemTracking.WebApi.WorkItemTrackingHttpClient]$workItemTrackingHttpClient,
         [Parameter(Mandatory = $true)]
-        [int]$workItemId,
+        [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItem]$workItem,
         [Parameter(Mandatory = $true)]
         [int]$buildId,
         [Parameter(Mandatory = $true)]
@@ -114,14 +106,9 @@ function Update-WorkItem {
         [Parameter(Mandatory = $true)]
         [string]$updateAssignedTo)
 
-    Write-VstsTaskDebug -Message "Found WorkItemRef: $($workItemId)"
-    $task = InvokeByReflection $workItemTrackingHttpClient "GetWorkItemAsync" @([int]) ($workItemId, $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations)
-    $workItem = $task.Result
-    Write-VstsTaskDebug -Message "Found WorkItem: $($workItem.Id)"
-    if ($workItem.Fields["System.WorkItemType"] -eq $workItemType)
-    {
-        if ($workItemCurrentState -ne "" -and $workItemCurrentState -split ',' -notcontains $workItem.Fields["System.State"])
-        {
+    Write-VstsTaskDebug -Message "Updating  WorkItem: $($workItem.Id)"
+    if ($workItem.Fields["System.WorkItemType"] -eq $workItemType) {
+        if ($workItemCurrentState -ne "" -and $workItemCurrentState -split ',' -notcontains $workItem.Fields["System.State"]) {
             Write-VstsTaskDebug -Message "Skipped currently $($workItem.Fields["System.State"]) WorkItem: $($workItem.Id)"
             return
         }
@@ -137,8 +124,7 @@ function Update-WorkItem {
 
         $patch = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument
 
-        if ($workItemState -ne "")
-        {
+        if ($workItemState -ne "") {
             $columnOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
             $columnOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
             $columnOperation.Path = "/fields/System.State"
@@ -147,8 +133,7 @@ function Update-WorkItem {
             Write-VstsTaskDebug -Message "Patch: $($columnOperation.Path) $($columnOperation.Value)"
         }
 
-        if ($workItemKanbanLane -ne "" -and $kanbanLane -ne "" -and $kanbanLane -ne $null)
-        {
+        if ($workItemKanbanLane -ne "" -and $kanbanLane -ne "" -and $kanbanLane -ne $null) {
             $kanbanLane.Split(" ") | ForEach-Object {
                 $columnBoardLane = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
                 $columnBoardLane.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
@@ -159,8 +144,7 @@ function Update-WorkItem {
             }
         }
 
-        if ($workItemKanbanState -ne "" -and $kanbanColumn -ne "" -and $kanbanColumn -ne $null)
-        {
+        if ($workItemKanbanState -ne "" -and $kanbanColumn -ne "" -and $kanbanColumn -ne $null) {
             $kanbanColumn.Split(" ") | ForEach-Object { 
                 $columnDoneOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
                 $columnDoneOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
@@ -182,8 +166,7 @@ function Update-WorkItem {
             }
         }
 
-        if ($linkBuild -eq $true)
-        {
+        if ($linkBuild -eq $true) {
             $buildRelationUrl = "vstfs:///Build/Build/$buildId"
             $buildRelation = $workItem.Relations | Where-Object { $_.Url -eq $buildRelationUrl }
             if ($buildRelation -eq $null) {
@@ -192,12 +175,12 @@ function Update-WorkItem {
                 $linkBuildOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
                 $linkBuildOperation.Path = "/relations/-"
                 $linkBuildOperation.Value = @{
-                        Rel = "ArtifactLink"
-                        Url = $buildRelationUrl
-                        Attributes = @{
-                            name = "Build"
-                        }
+                    Rel        = "ArtifactLink"
+                    Url        = $buildRelationUrl
+                    Attributes = @{
+                        name = "Build"
                     }
+                }
                 $patch.Add($linkBuildOperation)
                 Write-VstsTaskDebug -Message "Patch: $($linkBuildOperation.Path) $($buildRelationUrl)"
             }
@@ -205,8 +188,7 @@ function Update-WorkItem {
                 Write-Host "Build $($buildId) already linked to WorkItem $($workItem.Id)"
             }
         }
-        if ($updateAssignedTo -eq "Always" -or ($updateAssignedTo -eq "Unassigned" -and $workItem.Fields.ContainsKey("System.AssignedTo") -eq $false))
-        {
+        if ($updateAssignedTo -eq "Always" -or ($updateAssignedTo -eq "Unassigned" -and $workItem.Fields.ContainsKey("System.AssignedTo") -eq $false)) {
             $assignedToOperation = New-Object Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchOperation
             $assignedToOperation.Operation = [Microsoft.VisualStudio.Services.WebApi.Patch.Operation]::Add
             $assignedToOperation.Path = "/fields/System.AssignedTo"
@@ -218,18 +200,15 @@ function Update-WorkItem {
         Write-VstsTaskDebug -Message "Start InvokeByReflection for UpdateWorkItemAsync"
         $task = InvokeByReflection $workItemTrackingHttpClient "UpdateWorkItemAsync" @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument], [int]) @([Microsoft.VisualStudio.Services.WebApi.Patch.Json.JsonPatchDocument]$patch, $workItem.Id)
         $updatedWorkItem = $task.Result
-        Write-Host "WorkItem $($workItemId) updated to State: $($workItemState), KanbanState: $($workItemKanbanState), KanbanDone $($workItemDone)"
-        if ($updatedWorkItem -ne $null -and $updatedWorkItem.Id -ne $null)
-        {
+        Write-Host "WorkItem $($workItem.Id) updated to State: $($workItemState), KanbanState: $($workItemKanbanState), KanbanDone $($workItemDone)"
+        if ($updatedWorkItem -ne $null -and $updatedWorkItem.Id -ne $null) {
             Write-VstsTaskDebug -Message "Updated WorkItem Id: $($updatedWorkItem.Id)"
         }
-        else
-        {
+        else {
             Write-VstsTaskDebug -Message "Updated WorkItem Id is NULL"
         }
     }
-    else
-    {
+    else {
         Write-VstsTaskDebug -Message "Skipped $($workItem.Fields['System.WorkItemType']) WorkItem: $($workItem.Id)"
     }
 }
@@ -273,24 +252,36 @@ try {
 
     Write-VstsTaskDebug -Message "Converting projectId '$projectId' as GUID"
     $projectIdGuid = [GUID]$projectId
-
-    if ($updateAssignedToWith -eq "FixedUser") {
-        Write-VstsTaskDebug -Message "Using fixed user '$assignedTo' as assignedTo."
-    } else {
-        Write-VstsTaskDebug -Message "Setting assignedTo to requester for build '$requestedFor'."
-        $assignedTo = $requestedFor
-    }
-
+    
     $workItemTrackingHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.WorkItemTracking.WebApi.WorkItemTrackingHttpClient
     $buildHttpClient = Get-VssHttpClient -TypeName Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient
     Write-VstsTaskDebug -Message "GetBuildWorkItemsRefsAsync $projectId $buildId"
     $task = InvokeByReflection $buildHttpClient "GetBuildWorkItemsRefsAsync" @([Guid], [int]) @($projectIdGuid, $buildIdNum)
     $workItemsRefs = $task.Result
     Write-VstsTaskDebug -Message "Loop workItemsRefs"
-    foreach ($workItemRef in $workItemsRefs)
-    {
+    foreach ($workItemRef in $workItemsRefs) {
+        Write-VstsTaskDebug -Message "Found WorkItemRef: $($workItemId)"
+        $task = InvokeByReflection $workItemTrackingHttpClient "GetWorkItemAsync" @([int]) ($workItemId, $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations)
+        $workItem = $task.Result
+        Write-VstsTaskDebug -Message "Found WorkItem: $($workItem.Id)"
+
+        if ($updateAssignedToWith -eq "Creator") {
+            $creator = $workItem.Fields["System.CreatedBy"]
+            Write-VstsTaskDebug -Message "Using workitem creator user '$creator' as assignedTo."
+            $assignedTo = $creator
+        }
+        else {
+            if ($updateAssignedToWith -eq "FixedUser") {
+                Write-VstsTaskDebug -Message "Using fixed user '$assignedTo' as assignedTo."
+            }
+            else {
+                Write-VstsTaskDebug -Message "Setting assignedTo to requester for build '$requestedFor'."
+                $assignedTo = $requestedFor
+            }
+        }
+
         Update-WorkItem -workItemTrackingHttpClient $workItemTrackingHttpClient `
-            -workItemId $workItemRef.Id `
+            -workItem $workItem `
             -buildId $buildId `
             -workItemType $workItemType `
             -workItemState $workItemState `
