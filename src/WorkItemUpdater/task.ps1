@@ -260,8 +260,8 @@ try {
     $workItemsRefs = $task.Result
     Write-VstsTaskDebug -Message "Loop workItemsRefs"
     foreach ($workItemRef in $workItemsRefs) {
-        Write-VstsTaskDebug -Message "Found WorkItemRef: $($workItemId)"
-        $task = InvokeByReflection $workItemTrackingHttpClient "GetWorkItemAsync" @([int]) ($workItemId, $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations)
+        Write-VstsTaskDebug -Message "Found WorkItemRef: $($workItemRef.Id)"
+        $task = InvokeByReflection $workItemTrackingHttpClient "GetWorkItemAsync" @([int]) ($workItemRef.Id, $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations)
         $workItem = $task.Result
         Write-VstsTaskDebug -Message "Found WorkItem: $($workItem.Id)"
 
