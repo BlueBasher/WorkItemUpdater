@@ -261,20 +261,24 @@ try {
     Write-VstsTaskDebug -Message "Loop workItemsRefs"
     foreach ($workItemRef in $workItemsRefs) {
         Write-VstsTaskDebug -Message "Found WorkItemRef: $($workItemRef.Id)"
-        $task = InvokeByReflection $workItemTrackingHttpClient "GetWorkItemAsync" @([int]) ($workItemRef.Id, $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations)
+        $task = InvokeByReflection $workItemTrackingHttpClient "GetWorkItemAsync" @([int]) ([int]$($workItemRef.Id), $null, $null, [Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.WorkItemExpand]::Relations)
         $workItem = $task.Result
         Write-VstsTaskDebug -Message "Found WorkItem: $($workItem.Id)"
 
-        if ($updateAssignedToWith -eq "Creator") {
-            $creator = $workItem.Fields["System.CreatedBy"]
-            Write-VstsTaskDebug -Message "Using workitem creator user '$creator' as assignedTo."
-            $assignedTo = $creator
-        }
-        else {
-            if ($updateAssignedToWith -eq "FixedUser") {
+        switch ($updateAssignedToWith) {
+            "Creator" {  
+                $creator = $workItem.Fields["System.CreatedBy"]
+                Write-VstsTaskDebug -Message "Using workitem creator user '$creator' as assignedTo."
+                $assignedTo = $creator
+            }
+            "FixedUser" {
                 Write-VstsTaskDebug -Message "Using fixed user '$assignedTo' as assignedTo."
             }
-            else {
+            "Unassigned" {
+                Write-VstsTaskDebug -Message "Using Unassigned as assignedTo."
+                $assignedTo = $null
+            }
+            default {
                 Write-VstsTaskDebug -Message "Setting assignedTo to requester for build '$requestedFor'."
                 $assignedTo = $requestedFor
             }
