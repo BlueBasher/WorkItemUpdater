@@ -101,7 +101,7 @@ function Update-WorkItem {
         [string]$workItemDone,
         [Parameter(Mandatory = $true)]
         [bool]$linkBuild,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]$assignedTo,
         [Parameter(Mandatory = $true)]
         [string]$updateAssignedTo)
