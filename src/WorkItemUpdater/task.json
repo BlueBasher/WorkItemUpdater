@@ -114,11 +114,12 @@
             "defaultValue": "Requester",
             "required": true,
             "visibleRule": "updateAssignedTo != Never",
-            "helpMarkDown": "Update the 'Assigned To' field of the workitem with the requester of the build or a fixed user.",
+            "helpMarkDown": "Update the 'Assigned To' field of the workitem with a specific user.",
             "options": {
                 "Requester": "Requester of the build",
                 "Creator": "Creator of the workitem",
-                "FixedUser": "Fixed user"
+                "FixedUser": "Fixed user",
+                "Unassigned": "Unassign the workitem"
             }
         },
         {
