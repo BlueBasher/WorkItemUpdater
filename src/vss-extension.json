@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
     "id": "bluebasher-workitemupdater",
-    "version": "1.4.0",
+    "version": "2.0.22",
     "name": "WorkItem Updater",
     "scopes": [ "vso.work", "vso.work_write" ],
     "description": "Update the state of work items linked to a build.",
