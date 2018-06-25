@@ -1,17 +1,17 @@
 {
   "scripts": {
-    "build": "tsc -p .",
-    "postbuild": "npm run package",
-    "package": "tfx extension create",
-    "clean": "rimraf ./dist && rimraf ./*.vsix"
+    "package": "npm run clean  && npm run compile  && tfx extension create  --rev-version",
+    "gallery-publish": "tfx extension publish --rev-version",
+    "clean": "rimraf ./*.vsix",
+    "compile": "tsc -p .",
+    "install-task-lib": "cd WorkItemUpdater && npm install --save-dev"
   },
   "devDependencies": {
-    "grunt": "^1.0.0",
-    "grunt-exec": "*",
-    "rimraf": "^2.5.4",
-    "tfx-cli": "^0.3.45"
+    "@types/node": "^8.0.7",
+    "tfx-cli": "^0.4.5",
+    "typescript": "2.3.4"
   },
-  "name": "",
+  "name": "vstsexttask",
   "private": true,
-  "version": "0.0.0"
+  "version": "0.0.1"
 }
