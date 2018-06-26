@@ -20,6 +20,8 @@ A preview of what the task can do, can be seen in this recording:
 ![settings](img/Settings.png)  
   
 ## Version History
+### 2.1.8
+- Be able to update multiple workitem types at once.
 ### 2.0.23
 - Rebuild extension using Node.js.
 - Added option to specify the source of the workitems. This can be a Query or workitems linked to the build.
