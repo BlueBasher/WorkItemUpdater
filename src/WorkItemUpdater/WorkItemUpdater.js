@@ -141,7 +141,7 @@ function getWorkItemsRefs(vstsWebApi, workItemTrackingClient, settings) {
 function updateWorkItem(workItemTrackingClient, workItem, settings) {
     return __awaiter(this, void 0, void 0, function* () {
         tl.debug("Updating  WorkItem: " + workItem.id);
-        if (workItem.fields["System.WorkItemType"] === settings.workItemType) {
+        if (settings.workItemType.split(',').indexOf(workItem.fields["System.WorkItemType"]) >= 0) {
             if (settings.workItemCurrentState && settings.workItemCurrentState !== "" && settings.workItemCurrentState.split(',').indexOf(workItem.fields["System.State"]) === -1) {
                 console.log("Skipped WorkItem: " + workItem.id + " State: '" + workItem.fields["System.State"] + "' => Only updating if state in '" + settings.workItemCurrentState) + "'";
                 return;

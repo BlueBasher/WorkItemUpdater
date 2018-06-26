@@ -2,7 +2,7 @@
     "id": "7164116a-ed17-48be-9c53-b440b2b1dd2e",
     "name": "WorkItemUpdater",
     "friendlyName": "WorkItem Updater",
-    "description": "This task enabled updating WorkItems during a Build or Release.",
+    "description": "This task adds functionality to update WorkItems during a Build or Release.",
     "author": "Blue Basher",
     "helpMarkDown": "",
     "category": "Utility",
@@ -12,8 +12,8 @@
     ],
     "version": {
         "Major": "2",
-        "Minor": "0",
-        "Patch": "22"
+        "Minor": "1",
+        "Patch": "8"
     },
     "demands": [],
     "minimumAgentVersion": "1.91.0",
@@ -49,7 +49,9 @@
             "required": true,
             "helpMarkDown": "The type of workitems to update",
             "properties": {
-                "DisableManageLink": "True"
+                "DisableManageLink": "True",
+                "EditableOptions": "False",
+                "MultiSelectFlatList": "True"
             }
         },
         {
@@ -65,13 +67,15 @@
         },
         {
             "name": "workItemCurrentState",
-            "type": "string",
+            "type": "picklist",
             "label": "WorkItem Current State",
             "defaultValue": "",
             "required": false,
             "helpMarkDown": "If defined, only update workitems that currently have this state. Leave empty to update from any state. Separate different valid states with ','",
             "properties": {
-                "DisableManageLink": "True"
+                "DisableManageLink": "True",
+                "EditableOptions": "False",
+                "MultiSelectFlatList": "True"
             }
         },
         {
@@ -162,6 +166,12 @@
         },
         {
             "target": "workItemState",
+            "endpoint": "/$(system.teamProject)/_api/_wit/allowedValues?__v=5&fieldId=2",
+            "selector": "jsonpath:$.__wrappedArray[*]",
+            "authKey": "tfs:teamfoundation"
+        },
+        {
+            "target": "workItemCurrentState",
             "endpoint": "/$(system.teamProject)/_api/_wit/allowedValues?__v=5&fieldId=2",
             "selector": "jsonpath:$.__wrappedArray[*]",
             "authKey": "tfs:teamfoundation"
