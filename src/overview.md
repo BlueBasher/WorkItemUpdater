@@ -20,7 +20,9 @@ A preview of what the task can do, can be seen in this recording:
 ![settings](img/Settings.png)  
   
 ## Version History
-### 2.1.8
+### 2.2.764
+- Functionality to, while deploying a release to an environment, update all workitems since the previously completed deployment.
+### 2.1.762
 - Be able to update multiple workitem types at once.
 ### 2.0.23
 - Rebuild extension using Node.js.

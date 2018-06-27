@@ -1,10 +1,14 @@
 export class Settings {
     public buildId: number;
     public projectId: string;
+    public releaseId: number | null;
+    public definitionId: number | null;
+    public definitionEnvironmentId: number | null;
     public requestedFor: string;
     public workitemsSource: string;
     public workitemsSourceQuery: string;
     public workItemType: string;
+    public allWorkItemsSinceLastRelease: boolean;
     public workItemState: string;
     public workItemCurrentState: string;
     public workItemKanbanLane: string;
