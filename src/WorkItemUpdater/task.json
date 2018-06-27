@@ -55,6 +55,14 @@
             }
         },
         {
+            "name": "allWorkItemsSinceLastRelease",
+            "type": "boolean",
+            "label": "Include workitems since previously completed deployment",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "While deploying a release to an environment, update all workitems since the previously completed deployment."
+        },
+        {
             "name": "workItemState",
             "type": "pickList",
             "label": "WorkItem State",
@@ -68,7 +76,7 @@
         {
             "name": "workItemCurrentState",
             "type": "picklist",
-            "label": "WorkItem Current State",
+            "label": "Filter by WorkItem Current State",
             "defaultValue": "",
             "required": false,
             "helpMarkDown": "If defined, only update workitems that currently have this state. Leave empty to update from any state. Separate different valid states with ','",

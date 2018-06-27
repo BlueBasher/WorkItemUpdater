@@ -9,6 +9,8 @@ import { IWorkItemTrackingApi } from 'vso-node-api/WorkItemTrackingApi';
 import { ResourceRef, JsonPatchDocument, JsonPatchOperation, Operation } from 'vso-node-api/interfaces/common/VSSInterfaces';
 import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation } from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 import { WorkItemQueryResult } from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
+import { IReleaseApi } from 'vso-node-api/ReleaseApi';
+import { DeploymentStatus, ReleaseQueryOrder } from 'vso-node-api/interfaces/ReleaseInterfaces';
 
 async function main(): Promise<void> {
     try {
@@ -84,6 +86,7 @@ function getSettings(): Settings {
     settings.requestedFor = tl.getVariable("Build.RequestedFor");
     settings.workitemsSource = tl.getInput("workitemsSource");
     settings.workitemsSourceQuery = tl.getInput("workitemsSourceQuery");
+    settings.allWorkItemsSinceLastRelease = tl.getBoolInput("allWorkItemsSinceLastRelease");
     settings.workItemType = tl.getInput("workItemType");
     settings.workItemState = tl.getInput("workItemState");
     settings.workItemCurrentState = tl.getInput("workItemCurrentState");
@@ -95,11 +98,26 @@ function getSettings(): Settings {
     settings.updateAssignedToWith = tl.getInput("updateAssignedToWith");
     settings.assignedTo = tl.getInput("assignedTo");
 
+    let releaseIdString = tl.getVariable("Release.ReleaseId");
+    let definitionIdString = tl.getVariable("Release.DefinitionId");
+    let definitionEnvironmentIdString = tl.getVariable("Release.DefinitionEnvironmentId");
+    if (releaseIdString && releaseIdString !== ""
+        && definitionIdString && definitionIdString !== ""
+        && definitionEnvironmentIdString && definitionEnvironmentIdString !== "") {
+        settings.releaseId = parseInt(releaseIdString);
+        settings.definitionId = parseInt(definitionIdString);
+        settings.definitionEnvironmentId = parseInt(definitionEnvironmentIdString);
+    }
+
     tl.debug("BuildId " + settings.buildId);
     tl.debug("ProjectId " + settings.projectId);
+    tl.debug("ReleaseId " + settings.releaseId);
+    tl.debug("DefinitionId " + settings.definitionId);
+    tl.debug("DefinitionEnvironmentId " + settings.definitionEnvironmentId);
     tl.debug("requestedFor " + settings.requestedFor);
     tl.debug("workitemsSource " + settings.workitemsSource);
     tl.debug("workitemsSourceQuery " + settings.workitemsSourceQuery);
+    tl.debug("allWorkItemsSinceLastRelease " + settings.allWorkItemsSinceLastRelease);
     tl.debug("workItemType " + settings.workItemType);
     tl.debug("WorkItemState " + settings.workItemState);
     tl.debug("workItemCurrentState " + settings.workItemCurrentState);
@@ -115,6 +133,25 @@ function getSettings(): Settings {
 
 async function getWorkItemsRefs(vstsWebApi: WebApi, workItemTrackingClient: IWorkItemTrackingApi, settings: Settings): Promise<ResourceRef[]> {
     if (settings.workitemsSource === 'Build') {
+        if (settings.releaseId && settings.allWorkItemsSinceLastRelease) {
+            console.log("Using Release as WorkItem Source");
+            let releaseClient: IReleaseApi = await vstsWebApi.getReleaseApi();
+            let deployments = await releaseClient.getDeployments(settings.projectId, settings.definitionId, settings.definitionEnvironmentId, null, null, null, DeploymentStatus.Succeeded, null, null, ReleaseQueryOrder.Descending, 1);
+            if (deployments.length > 0) {
+                let baseReleaseId = deployments[0].release.id;
+                tl.debug("Using Release " + baseReleaseId + " as BaseRelease for " + settings.releaseId);
+                let releaseWorkItemRefs = await releaseClient.getReleaseWorkItemsRefs(settings.projectId, settings.releaseId, baseReleaseId)
+                var result: ResourceRef[] = [];
+                releaseWorkItemRefs.forEach((releaseWorkItem) => {
+                    result.push({
+                        id: releaseWorkItem.id.toString(),
+                        url: releaseWorkItem.url
+                    });
+                });
+                return result;
+            }
+        }
+
         console.log("Using Build as WorkItem Source");
         let buildClient: IBuildApi = await vstsWebApi.getBuildApi();
         let workItemRefs: ResourceRef[] = await buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId);
