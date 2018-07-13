@@ -13,12 +13,14 @@ const settings_1 = require("./settings");
 const WebApi_1 = require("vso-node-api/WebApi");
 const VSSInterfaces_1 = require("vso-node-api/interfaces/common/VSSInterfaces");
 const WorkItemTrackingInterfaces_1 = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
+const ReleaseInterfaces_1 = require("vso-node-api/interfaces/ReleaseInterfaces");
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             let vstsWebApi = getVstsWebApi();
             let settings = getSettings();
             let workItemTrackingClient = yield vstsWebApi.getWorkItemTrackingApi();
+            tl.debug("Get workItemsRefs");
             let workItemRefs = yield getWorkItemsRefs(vstsWebApi, workItemTrackingClient, settings);
             if (!workItemRefs || workItemRefs.length === 0) {
                 console.log("No workitems found to update.");
@@ -84,6 +86,7 @@ function getSettings() {
     settings.requestedFor = tl.getVariable("Build.RequestedFor");
     settings.workitemsSource = tl.getInput("workitemsSource");
     settings.workitemsSourceQuery = tl.getInput("workitemsSourceQuery");
+    settings.allWorkItemsSinceLastRelease = tl.getBoolInput("allWorkItemsSinceLastRelease");
     settings.workItemType = tl.getInput("workItemType");
     settings.workItemState = tl.getInput("workItemState");
     settings.workItemCurrentState = tl.getInput("workItemCurrentState");
@@ -94,11 +97,33 @@ function getSettings() {
     settings.updateAssignedTo = tl.getInput("updateAssignedTo");
     settings.updateAssignedToWith = tl.getInput("updateAssignedToWith");
     settings.assignedTo = tl.getInput("assignedTo");
+    settings.addTags = tl.getInput("addTags");
+    if (settings.addTags) {
+        settings.addTags = settings.addTags.replace(/(?:\r\n|\r|\n)/g, ';');
+    }
+    settings.removeTags = tl.getInput("removeTags");
+    if (settings.removeTags) {
+        settings.removeTags = settings.removeTags.replace(/(?:\r\n|\r|\n)/g, ';');
+    }
+    let releaseIdString = tl.getVariable("Release.ReleaseId");
+    let definitionIdString = tl.getVariable("Release.DefinitionId");
+    let definitionEnvironmentIdString = tl.getVariable("Release.DefinitionEnvironmentId");
+    if (releaseIdString && releaseIdString !== ""
+        && definitionIdString && definitionIdString !== ""
+        && definitionEnvironmentIdString && definitionEnvironmentIdString !== "") {
+        settings.releaseId = parseInt(releaseIdString);
+        settings.definitionId = parseInt(definitionIdString);
+        settings.definitionEnvironmentId = parseInt(definitionEnvironmentIdString);
+    }
     tl.debug("BuildId " + settings.buildId);
     tl.debug("ProjectId " + settings.projectId);
+    tl.debug("ReleaseId " + settings.releaseId);
+    tl.debug("DefinitionId " + settings.definitionId);
+    tl.debug("DefinitionEnvironmentId " + settings.definitionEnvironmentId);
     tl.debug("requestedFor " + settings.requestedFor);
     tl.debug("workitemsSource " + settings.workitemsSource);
     tl.debug("workitemsSourceQuery " + settings.workitemsSourceQuery);
+    tl.debug("allWorkItemsSinceLastRelease " + settings.allWorkItemsSinceLastRelease);
     tl.debug("workItemType " + settings.workItemType);
     tl.debug("WorkItemState " + settings.workItemState);
     tl.debug("workItemCurrentState " + settings.workItemCurrentState);
@@ -108,11 +133,31 @@ function getSettings() {
     tl.debug("updateAssignedTo " + settings.updateAssignedTo);
     tl.debug("updateAssignedToWith " + settings.updateAssignedToWith);
     tl.debug("assignedTo " + settings.assignedTo);
+    tl.debug("addTags " + settings.addTags);
+    tl.debug("removeTags " + settings.removeTags);
     return settings;
 }
 function getWorkItemsRefs(vstsWebApi, workItemTrackingClient, settings) {
     return __awaiter(this, void 0, void 0, function* () {
         if (settings.workitemsSource === 'Build') {
+            if (settings.releaseId && settings.allWorkItemsSinceLastRelease) {
+                console.log("Using Release as WorkItem Source");
+                let releaseClient = yield vstsWebApi.getReleaseApi();
+                let deployments = yield releaseClient.getDeployments(settings.projectId, settings.definitionId, settings.definitionEnvironmentId, null, null, null, ReleaseInterfaces_1.DeploymentStatus.Succeeded, null, null, ReleaseInterfaces_1.ReleaseQueryOrder.Descending, 1);
+                if (deployments.length > 0) {
+                    let baseReleaseId = deployments[0].release.id;
+                    tl.debug("Using Release " + baseReleaseId + " as BaseRelease for " + settings.releaseId);
+                    let releaseWorkItemRefs = yield releaseClient.getReleaseWorkItemsRefs(settings.projectId, settings.releaseId, baseReleaseId);
+                    var result = [];
+                    releaseWorkItemRefs.forEach((releaseWorkItem) => {
+                        result.push({
+                            id: releaseWorkItem.id.toString(),
+                            url: releaseWorkItem.url
+                        });
+                    });
+                    return result;
+                }
+            }
             console.log("Using Build as WorkItem Source");
             let buildClient = yield vstsWebApi.getBuildApi();
             let workItemRefs = yield buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId);
@@ -192,6 +237,29 @@ function updateWorkItem(workItemTrackingClient, workItem, settings) {
             }
             if (settings.updateAssignedTo === "Always" || (settings.updateAssignedTo === "Unassigned" && getWorkItemFields(workItem, (f) => f === "System.AssignedTo").length === 0)) {
                 addPatchOperation("/fields/System.AssignedTo", settings.assignedTo, document);
+            }
+            if (settings.addTags || settings.removeTags) {
+                let newTags = [];
+                let removeTags = settings.removeTags ? settings.removeTags.split(";") : [];
+                if (workItem.fields['System.Tags']) {
+                    tl.debug("Existing tags: " + workItem.fields['System.Tags']);
+                    workItem.fields['System.Tags'].split(';').forEach((tag) => {
+                        if (removeTags.find(e => e.toLowerCase() === tag.trim().toLowerCase())) {
+                            tl.debug("Removing tag: " + tag);
+                        }
+                        else {
+                            newTags.push(tag.trim());
+                        }
+                    });
+                }
+                let addTags = settings.addTags ? settings.addTags.split(";") : [];
+                addTags.forEach((tag) => {
+                    if (!newTags.find(e => e.toLowerCase() === tag.toLowerCase())) {
+                        tl.debug("Adding tag: " + tag);
+                        newTags.push(tag.trim());
+                    }
+                });
+                addPatchOperation("/fields/System.Tags", newTags.join("; "), document);
             }
             tl.debug("Start UpdateWorkItem");
             let updatedWorkItem = yield workItemTrackingClient.updateWorkItem(null, document, workItem.id);

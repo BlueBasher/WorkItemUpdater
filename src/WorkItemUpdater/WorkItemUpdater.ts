@@ -7,7 +7,7 @@ import { WebApi, getHandlerFromToken } from 'vso-node-api/WebApi';
 import { BuildStatus, BuildResult, BuildQueryOrder, Build } from 'vso-node-api/interfaces/BuildInterfaces';
 import { IWorkItemTrackingApi } from 'vso-node-api/WorkItemTrackingApi';
 import { ResourceRef, JsonPatchDocument, JsonPatchOperation, Operation } from 'vso-node-api/interfaces/common/VSSInterfaces';
-import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation } from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
+import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation, QueryHierarchyItem } from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 import { WorkItemQueryResult } from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
 import { IReleaseApi } from 'vso-node-api/ReleaseApi';
 import { DeploymentStatus, ReleaseQueryOrder } from 'vso-node-api/interfaces/ReleaseInterfaces';
@@ -17,8 +17,10 @@ async function main(): Promise<void> {
         let vstsWebApi: WebApi = getVstsWebApi();
         let settings: Settings = getSettings();
 
+        tl.debug("Get WorkItemTrackingApi");
         let workItemTrackingClient: IWorkItemTrackingApi = await vstsWebApi.getWorkItemTrackingApi();
 
+        tl.debug("Get workItemsRefs");
         let workItemRefs: ResourceRef[] = await getWorkItemsRefs(vstsWebApi, workItemTrackingClient, settings);
         if (!workItemRefs || workItemRefs.length === 0) {
             console.log("No workitems found to update.");
@@ -98,6 +100,15 @@ function getSettings(): Settings {
     settings.updateAssignedToWith = tl.getInput("updateAssignedToWith");
     settings.assignedTo = tl.getInput("assignedTo");
 
+    settings.addTags = tl.getInput("addTags");
+    if (settings.addTags) {
+        settings.addTags = settings.addTags.replace(/(?:\r\n|\r|\n)/g, ';');
+    }
+    settings.removeTags = tl.getInput("removeTags");
+    if (settings.removeTags) {
+        settings.removeTags = settings.removeTags.replace(/(?:\r\n|\r|\n)/g, ';');
+    }
+
     let releaseIdString = tl.getVariable("Release.ReleaseId");
     let definitionIdString = tl.getVariable("Release.DefinitionId");
     let definitionEnvironmentIdString = tl.getVariable("Release.DefinitionEnvironmentId");
@@ -127,6 +138,8 @@ function getSettings(): Settings {
     tl.debug("updateAssignedTo " + settings.updateAssignedTo);
     tl.debug("updateAssignedToWith " + settings.updateAssignedToWith);
     tl.debug("assignedTo " + settings.assignedTo);
+    tl.debug("addTags " + settings.addTags);
+    tl.debug("removeTags " + settings.removeTags);
 
     return settings;
 }
@@ -159,21 +172,28 @@ async function getWorkItemsRefs(vstsWebApi: WebApi, workItemTrackingClient: IWor
     }
     else if (settings.workitemsSource === 'Query') {
         console.log("Using Query as WorkItem Source");
-        var queryResult: WorkItemQueryResult = await workItemTrackingClient.queryById(
-            settings.workitemsSourceQuery,
-            {
-                project: null,
-                projectId: settings.projectId,
-                team: null,
-                teamId: null
-            });
         var result: ResourceRef[] = [];
-        queryResult.workItems.forEach((workItem) => {
-            result.push({
-                id: workItem.id.toString(),
-                url: workItem.url
+        var query: QueryHierarchyItem = await workItemTrackingClient.getQuery(settings.projectId, settings.workitemsSourceQuery);
+        if (query) {
+            tl.debug("Found queryId " + query.id + " from QueryName " + settings.workitemsSourceQuery);
+            var queryResult: WorkItemQueryResult = await workItemTrackingClient.queryById(
+                query.id,
+                {
+                    project: null,
+                    projectId: settings.projectId,
+                    team: null,
+                    teamId: null
+                });
+            queryResult.workItems.forEach((workItem) => {
+                result.push({
+                    id: workItem.id.toString(),
+                    url: workItem.url
+                });
             });
-        });
+        }
+        else {
+            tl.warning("Could not find query " + settings.workitemsSourceQuery);
+        }
         return result;
     }
 
@@ -242,6 +262,33 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
 
         if (settings.updateAssignedTo === "Always" || (settings.updateAssignedTo === "Unassigned" && getWorkItemFields(workItem, (f) => f === "System.AssignedTo").length === 0)) {
             addPatchOperation("/fields/System.AssignedTo", settings.assignedTo, document);
+        }
+
+        if (settings.addTags || settings.removeTags) {
+            let newTags: string[] = [];
+
+            let removeTags: string[] = settings.removeTags ? settings.removeTags.split(";") : [];
+            if (workItem.fields['System.Tags']) {
+                tl.debug("Existing tags: " + workItem.fields['System.Tags']);
+                workItem.fields['System.Tags'].split(';').forEach((tag) => {
+                    if (removeTags.find(e => e.toLowerCase() === tag.trim().toLowerCase())) {
+                        tl.debug("Removing tag: " + tag);
+                    }
+                    else {
+                        newTags.push(tag.trim());
+                    }
+                });
+            }
+
+            let addTags: string[] = settings.addTags ? settings.addTags.split(";") : [];
+            addTags.forEach((tag) => {
+                if (!newTags.find(e => e.toLowerCase() === tag.toLowerCase())) {
+                    tl.debug("Adding tag: " + tag);
+                    newTags.push(tag.trim());
+                }
+            });
+
+            addPatchOperation("/fields/System.Tags", newTags.join("; "), document);
         }
 
         tl.debug("Start UpdateWorkItem");
