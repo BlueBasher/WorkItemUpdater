@@ -12,8 +12,8 @@
     ],
     "version": {
         "Major": "2",
-        "Minor": "2",
-        "Patch": "764"
+        "Minor": "3",
+        "Patch": "765"
     },
     "demands": [],
     "minimumAgentVersion": "1.91.0",
@@ -34,7 +34,7 @@
         },
         {
             "name": "workitemsSourceQuery",
-            "type": "querycontrol",
+            "type": "string",
             "label": "Query",
             "defaultValue": "",
             "required": true,
@@ -163,6 +163,32 @@
             "properties": {
                 "DisableManageLink": "True"
             }
+        },
+        {
+            "name": "addTags",
+            "type": "multiLine",
+            "label": "Tags to add",
+            "required": false,
+            "defaultValue": "",
+            "properties": {
+                "resizable": "true",
+                "rows": "4",
+                "maxLength": "5000"
+            },
+            "helpMarkDown": "Tags to assign to the workitem. Enter a tag per line."
+        },
+        {
+            "name": "removeTags",
+            "type": "multiLine",
+            "label": "Tags to remove",
+            "required": false,
+            "defaultValue": "",
+            "properties": {
+                "resizable": "true",
+                "rows": "4",
+                "maxLength": "5000"
+            },
+            "helpMarkDown": "Tags to remove from the workitem. Enter a tag per line."
         }
     ],
     "sourceDefinitions": [

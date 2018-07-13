@@ -18,4 +18,6 @@ export class Settings {
     public updateAssignedTo: string;
     public updateAssignedToWith: string;
     public assignedTo: string;
+    public addTags: string;
+    public removeTags: string;
 }
