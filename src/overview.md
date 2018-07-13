@@ -20,6 +20,9 @@ A preview of what the task can do, can be seen in this recording:
 ![settings](img/Settings.png)  
   
 ## Version History
+### 2.4.784
+- Functionality to add tags to a workitem
+- Functionality to remove existing tags from a workitem  
 ### 2.2.764
 - Functionality to, while deploying a release to an environment, update all workitems since the previously completed deployment.
 ### 2.1.762
