@@ -4,12 +4,18 @@
     "gallery-publish": "tfx extension publish --rev-version",
     "clean": "rimraf ./*.vsix",
     "compile": "tsc -p .",
+    "build": "npm run clean && npm run compile",
+    "tsc:watch": "npm run build && npm run compile -- -w",
+    "lint": "tslint -p tsconfig.json -c tslint.json",
+    "lint-fix": "npm run lint -- --fix",
     "install-task-lib": "cd WorkItemUpdater && npm install --save-dev"
   },
   "devDependencies": {
     "@types/node": "^8.0.7",
+    "@types/q": "1.5.0",
     "tfx-cli": "^0.4.5",
-    "typescript": "2.3.4"
+    "typescript": "2.3.4",
+    "tslint": "^5.8.0"
   },
   "name": "vstsexttask",
   "private": true,
