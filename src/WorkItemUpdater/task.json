@@ -62,7 +62,6 @@
             "required": false,
             "helpMarkDown": "While deploying a release to an environment, update all workitems since the previously completed deployment."
         },
-        ,
         {
             "name": "failedbuildwhennoworkitems",
             "type": "boolean",
