@@ -24,7 +24,12 @@ function main() {
             tl.debug('Get workItemsRefs');
             const workItemRefs = yield getWorkItemsRefs(vstsWebApi, workItemTrackingClient, settings);
             if (!workItemRefs || workItemRefs.length === 0) {
+                
                 console.log('No workitems found to update.');
+                if(settings.failedbuildwhennoworkitems){
+                    tl.error("No workitems found to update.");
+                    tl.setResult(tl.TaskResult.Failed);
+                }
             }
             else {
                 tl.debug('Loop workItemsRefs');
@@ -88,6 +93,7 @@ function getSettings() {
     settings.workitemsSource = tl.getInput('workitemsSource');
     settings.workitemsSourceQuery = tl.getInput('workitemsSourceQuery');
     settings.allWorkItemsSinceLastRelease = tl.getBoolInput('allWorkItemsSinceLastRelease');
+    settings.failedbuildwhennoworkitems = tl.getBoolInput('failedbuildwhennoworkitems');
     settings.workItemType = tl.getInput('workItemType');
     settings.workItemState = tl.getInput('workItemState');
     settings.workItemCurrentState = tl.getInput('workItemCurrentState');
@@ -125,6 +131,7 @@ function getSettings() {
     tl.debug('workitemsSource ' + settings.workitemsSource);
     tl.debug('workitemsSourceQuery ' + settings.workitemsSourceQuery);
     tl.debug('allWorkItemsSinceLastRelease ' + settings.allWorkItemsSinceLastRelease);
+    tl.debug('failedbuildwhennoworkitems ' + settings.failedbuildwhennoworkitems);
     tl.debug('workItemType ' + settings.workItemType);
     tl.debug('WorkItemState ' + settings.workItemState);
     tl.debug('workItemCurrentState ' + settings.workItemCurrentState);
