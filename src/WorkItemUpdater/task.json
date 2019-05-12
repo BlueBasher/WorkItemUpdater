@@ -62,6 +62,15 @@
             "required": false,
             "helpMarkDown": "While deploying a release to an environment, update all workitems since the previously completed deployment."
         },
+        ,
+        {
+            "name": "failedbuildwhennoworkitems",
+            "type": "boolean",
+            "label": "failed build when no work items available ",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "failed build when no work items available ."
+        },
         {
             "name": "workItemState",
             "type": "pickList",
