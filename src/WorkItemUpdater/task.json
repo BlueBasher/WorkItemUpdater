@@ -165,6 +165,35 @@
             }
         },
         {
+            "name": "bypassRules",
+            "type": "boolean",
+            "label": "Bypass rules",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "Bypass the rules that have been configured for the workitem type."
+        },
+        {
+            "name": "failTaskIfNoWorkItemsAvailable",
+            "type": "boolean",
+            "label": "Fail the task when there are no workitems",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "If there are no workitems found to update, the task will fail."
+        },
+        {
+            "name": "updateFields",
+            "type": "multiLine",
+            "label": "Fields to update",
+            "required": false,
+            "defaultValue": "",
+            "properties": {
+                "resizable": "true",
+                "rows": "4",
+                "maxLength": "5000"
+            },
+            "helpMarkDown": "List of fields and values to update. Place each field on a new line and separate the fieldname and value with a comma.<br/>As an example:<br/><br/>System.Description,This is a test description<br/>CustomProcess.TestField,True"
+        },
+        {
             "name": "addTags",
             "type": "multiLine",
             "label": "Tags to add",

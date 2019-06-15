@@ -22,6 +22,7 @@ async function main(): Promise<void> {
 
         tl.debug('Get workItemsRefs');
         const workItemRefs: ResourceRef[] = await getWorkItemsRefs(vstsWebApi, workItemTrackingClient, settings);
+        let numberOfUpdateWorkitems = 0;
         if (!workItemRefs || workItemRefs.length === 0) {
             console.log('No workitems found to update.');
         }
@@ -55,12 +56,19 @@ async function main(): Promise<void> {
                     }
                 }
 
-                await updateWorkItem(workItemTrackingClient, workItem, settings);
+                if (await updateWorkItem(workItemTrackingClient, workItem, settings)) {
+                    numberOfUpdateWorkitems++;
+                }
             });
             tl.debug('Finished loop workItemsRefs');
         }
 
-        tl.setResult(tl.TaskResult.Succeeded, '');
+        if (numberOfUpdateWorkitems == 0
+            && settings.failTaskIfNoWorkItemsAvailable) {
+            tl.setResult(tl.TaskResult.Failed, 'Found no workitems to update.');
+        } else {
+            tl.setResult(tl.TaskResult.Succeeded, '');
+        }
     } catch (error) {
         tl.debug('Caught an error in main: ' + error);
         tl.setResult(tl.TaskResult.Failed, error);
@@ -99,6 +107,9 @@ function getSettings(): Settings {
     settings.updateAssignedTo = tl.getInput('updateAssignedTo');
     settings.updateAssignedToWith = tl.getInput('updateAssignedToWith');
     settings.assignedTo = tl.getInput('assignedTo');
+    settings.updateFields = tl.getInput('updateFields');
+    settings.bypassRules = tl.getBoolInput('bypassRules');
+    settings.failTaskIfNoWorkItemsAvailable = tl.getBoolInput('failTaskIfNoWorkItemsAvailable');
 
     settings.addTags = tl.getInput('addTags');
     if (settings.addTags) {
@@ -139,7 +150,10 @@ function getSettings(): Settings {
     tl.debug('updateAssignedToWith ' + settings.updateAssignedToWith);
     tl.debug('assignedTo ' + settings.assignedTo);
     tl.debug('addTags ' + settings.addTags);
+    tl.debug('updateFields ' + settings.updateFields);
     tl.debug('removeTags ' + settings.removeTags);
+    tl.debug('bypassRules ' + settings.bypassRules);
+    tl.debug('failTaskIfNoWorkItemsAvailable ' + settings.failTaskIfNoWorkItemsAvailable);
 
     return settings;
 }
@@ -200,12 +214,12 @@ async function getWorkItemsRefs(vstsWebApi: WebApi, workItemTrackingClient: IWor
     return undefined;
 }
 
-async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, workItem: WorkItem, settings: Settings): Promise<void> {
+async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, workItem: WorkItem, settings: Settings): Promise<boolean> {
     tl.debug('Updating  WorkItem: ' + workItem.id);
     if (settings.workItemType.split(',').indexOf(workItem.fields['System.WorkItemType']) >= 0) {
         if (settings.workItemCurrentState && settings.workItemCurrentState !== '' && settings.workItemCurrentState.split(',').indexOf(workItem.fields['System.State']) === -1) {
             console.log('Skipped WorkItem: ' + workItem.id + ' State: "' + workItem.fields['System.State'] + '" => Only updating if state in "' + settings.workItemCurrentState) + '"';
-            return;
+            return false;
         }
 
         console.log('Updating WorkItem ' + workItem.id);
@@ -243,7 +257,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
 
         if (settings.linkBuild) {
             const buildRelationUrl = 'vstfs:///Build/Build/$buildId';
-            const buildRelation = workItem.relations.find(r => r.url === buildRelationUrl);
+            const buildRelation = !workItem.relations || workItem.relations.find(r => r.url === buildRelationUrl);
             if (buildRelation === null) {
                 console.log('Linking Build ' + settings.buildId + ' to WorkItem ' + workItem.id);
                 const relation: WorkItemRelation = {
@@ -296,13 +310,31 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
             addPatchOperation('/fields/System.Tags', newTags.join('; '), document);
         }
 
+        if (settings.updateFields) {
+            const updateFields: string[] = settings.updateFields.split(/\r?\n/);
+            updateFields.forEach((updateField) => {
+                const commaIndex = updateField.indexOf(',');
+                if (commaIndex >= 0) {
+                    addPatchOperation('/fields/' + updateField.substring(0, commaIndex), updateField.substring(commaIndex + 1), document);
+                }
+            });
+        }
+
         tl.debug('Start UpdateWorkItem');
-        const updatedWorkItem = await workItemTrackingClient.updateWorkItem(undefined, document, workItem.id);
+        const updatedWorkItem = await workItemTrackingClient.updateWorkItem(
+            undefined,
+            document,
+            workItem.id,
+            undefined,
+            settings.bypassRules);
         console.log('WorkItem ' + workItem.id + ' updated');
+        return true;
     }
     else {
         console.log('Skipped ' + workItem.fields['System.WorkItemType'] + ' WorkItem: ' + workItem.id);
     }
+
+    return false;
 }
 
 function getWorkItemFields(workItem: any, predicate: any): string[] {
