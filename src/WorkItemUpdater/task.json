@@ -191,7 +191,7 @@
                 "rows": "4",
                 "maxLength": "5000"
             },
-            "helpMarkDown": "List of fields and values to update. Place each field on a new line and separate the fieldname and value with a comma.<br/>As an example:<br/><br/>System.Description,This is a test description<br/>CustomProcess.TestField,True"
+            "helpMarkDown": "List of fields and values to update. Place each field on a new line and separate the fieldname and value with a comma.<br/>Fieldnames can be found using: [Work Item Types Field - List](https://docs.microsoft.com/en-us/rest/api/azure/devops/wit/work%20item%20types%20field/list?view=azure-devops-rest-5.0)<br/>As an example:<br/><br/>System.Description,This is a test description<br/>Custom.TestField,True"
         },
         {
             "name": "addTags",

@@ -20,7 +20,7 @@ A preview of what the task can do, can be seen in this recording:
 ![settings](img/Settings.png)  
   
 ## Version History
-### 2.5.791
+### 2.5.793
 - Functionality to add custom list of Fields to update 
 - Functionality to allow to bypass workitem type rules 
 - Functionality to allow to fail task when there's no workitem to update 
