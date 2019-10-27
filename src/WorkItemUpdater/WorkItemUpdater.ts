@@ -249,7 +249,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
             });
         }
 
-        if (kanbanColumnDone.length > 0) {
+        if (settings.workItemDone && kanbanColumnDone.length > 0) {
             kanbanColumnDone.forEach((columnDone, index) => {
                 addPatchOperation('/fields/' + columnDone, settings.workItemDone, document);
             });
