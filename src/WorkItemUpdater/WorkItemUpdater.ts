@@ -258,7 +258,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
         if (settings.linkBuild) {
             const buildRelationUrl = 'vstfs:///Build/Build/$buildId';
             const buildRelation = !workItem.relations || workItem.relations.find(r => r.url === buildRelationUrl);
-            if (buildRelation === null) {
+            if (buildRelation === undefined) {
                 console.log('Linking Build ' + settings.buildId + ' to WorkItem ' + workItem.id);
                 const relation: WorkItemRelation = {
                     rel: 'ArtifactLink',
@@ -321,6 +321,13 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
         }
 
         tl.debug('Start UpdateWorkItem');
+
+        if(document.length === 0) {
+            // workItemTrackingClient.updateWorkItem fails if there is not patch operation
+            console.log('No update for WorkItem ' + workItem.id);
+            return false;
+        }
+
         const updatedWorkItem = await workItemTrackingClient.updateWorkItem(
             undefined,
             document,
