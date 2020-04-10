@@ -256,7 +256,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
         }
 
         if (settings.linkBuild) {
-            const buildRelationUrl = 'vstfs:///Build/Build/$buildId';
+            const buildRelationUrl = `vstfs:///Build/Build/${settings.buildId}`;
             const buildRelation = !workItem.relations || workItem.relations.find(r => r.url === buildRelationUrl);
             if (buildRelation === undefined) {
                 console.log('Linking Build ' + settings.buildId + ' to WorkItem ' + workItem.id);
