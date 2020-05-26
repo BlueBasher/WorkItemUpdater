@@ -98,6 +98,7 @@ function getSettings(): Settings {
     settings.workitemsSourceQuery = tl.getInput('workitemsSourceQuery');
     settings.allWorkItemsSinceLastRelease = tl.getBoolInput('allWorkItemsSinceLastRelease');
     settings.workItemType = tl.getInput('workItemType');
+    settings.workitemLimit = parseInt(tl.getInput('workitemLimit'));
     settings.workItemState = tl.getInput('workItemState');
     settings.workItemCurrentState = tl.getInput('workItemCurrentState');
     settings.workItemKanbanLane = tl.getInput('workItemKanbanLane');
@@ -138,6 +139,7 @@ function getSettings(): Settings {
     tl.debug('DefinitionEnvironmentId ' + settings.definitionEnvironmentId);
     tl.debug('requestedFor ' + settings.requestedFor);
     tl.debug('workitemsSource ' + settings.workitemsSource);
+    tl.debug('workitemLimit ' + settings.workitemLimit);
     tl.debug('workitemsSourceQuery ' + settings.workitemsSourceQuery);
     tl.debug('allWorkItemsSinceLastRelease ' + settings.allWorkItemsSinceLastRelease);
     tl.debug('workItemType ' + settings.workItemType);
@@ -181,7 +183,7 @@ async function getWorkItemsRefs(vstsWebApi: WebApi, workItemTrackingClient: IWor
 
         console.log('Using Build as WorkItem Source');
         const buildClient: IBuildApi = await vstsWebApi.getBuildApi();
-        const workItemRefs: ResourceRef[] = await buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId);
+        const workItemRefs: ResourceRef[] = await buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId, settings.workitemLimit);
         return workItemRefs;
     }
     else if (settings.workitemsSource === 'Query') {
@@ -322,7 +324,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
 
         tl.debug('Start UpdateWorkItem');
 
-        if(document.length === 0) {
+        if (document.length === 0) {
             // workItemTrackingClient.updateWorkItem fails if there is not patch operation
             console.log('No update for WorkItem ' + workItem.id);
             return false;

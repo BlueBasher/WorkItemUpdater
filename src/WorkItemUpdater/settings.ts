@@ -10,6 +10,7 @@ export class Settings {
     public workItemType: string;
     public allWorkItemsSinceLastRelease: boolean;
     public workItemState: string;
+    public workitemLimit: number | null;
     public workItemCurrentState: string;
     public workItemKanbanLane: string;
     public workItemKanbanState: string;

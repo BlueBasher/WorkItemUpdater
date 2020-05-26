@@ -55,6 +55,14 @@
             }
         },
         {
+            "name": "workitemLimit",
+            "type": "string",
+            "label": "WorkItem Limit",
+            "defaultValue": "50",
+            "required": false,
+            "helpMarkDown": "The number of workitems to update"
+        },
+        {
             "name": "allWorkItemsSinceLastRelease",
             "type": "boolean",
             "label": "Include workitems since previously completed deployment",
