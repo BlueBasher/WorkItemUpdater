@@ -83,7 +83,7 @@
         },
         {
             "name": "workItemCurrentState",
-            "type": "picklist",
+            "type": "pickList",
             "label": "Filter by WorkItem Current State",
             "defaultValue": "",
             "required": false,
