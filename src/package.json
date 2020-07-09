@@ -11,13 +11,16 @@
     "install-task-lib": "cd WorkItemUpdater && npm install --save-dev"
   },
   "devDependencies": {
-    "@types/node": "^8.0.7",
+    "@types/node": "^10.12.18",
     "@types/q": "1.5.0",
     "tfx-cli": "^0.4.5",
-    "typescript": "2.3.4",
+    "typescript": "3.6.4",
     "tslint": "^5.8.0"
   },
   "name": "vstsexttask",
   "private": true,
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "dependencies": {
+    "rimraf": "^3.0.2"
+  }
 }

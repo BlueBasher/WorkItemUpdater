@@ -1,16 +1,16 @@
-import tl = require('vsts-task-lib/task');
+import tl = require('azure-pipelines-task-lib/task');
 import { Settings } from './settings';
-import * as vso from 'vso-node-api';
-import { IBuildApi } from 'vso-node-api/BuildApi';
-import { IRequestHandler } from 'vso-node-api/interfaces/common/VsoBaseInterfaces';
-import { WebApi, getHandlerFromToken } from 'vso-node-api/WebApi';
-import { BuildStatus, BuildResult, BuildQueryOrder, Build } from 'vso-node-api/interfaces/BuildInterfaces';
-import { IWorkItemTrackingApi } from 'vso-node-api/WorkItemTrackingApi';
-import { ResourceRef, JsonPatchDocument, JsonPatchOperation, Operation } from 'vso-node-api/interfaces/common/VSSInterfaces';
-import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation, QueryHierarchyItem } from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
-import { WorkItemQueryResult } from 'vso-node-api/interfaces/WorkItemTrackingInterfaces';
-import { IReleaseApi } from 'vso-node-api/ReleaseApi';
-import { DeploymentStatus, ReleaseQueryOrder } from 'vso-node-api/interfaces/ReleaseInterfaces';
+import * as vso from 'azure-devops-node-api';
+import { IBuildApi } from 'azure-devops-node-api/BuildApi';
+import { IRequestHandler } from 'azure-devops-node-api/interfaces/common/VsoBaseInterfaces';
+import { WebApi, getHandlerFromToken } from 'azure-devops-node-api/WebApi';
+import { BuildStatus, BuildResult, BuildQueryOrder, Build } from 'azure-devops-node-api/interfaces/BuildInterfaces';
+import { IWorkItemTrackingApi } from 'azure-devops-node-api/WorkItemTrackingApi';
+import { ResourceRef, JsonPatchDocument, JsonPatchOperation, Operation } from 'azure-devops-node-api/interfaces/common/VSSInterfaces';
+import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation, QueryHierarchyItem } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
+import { WorkItemQueryResult } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
+import { IReleaseApi } from 'azure-devops-node-api/ReleaseApi';
+import { DeploymentStatus, ReleaseQueryOrder } from 'azure-devops-node-api/interfaces/ReleaseInterfaces';
 
 async function main(): Promise<void> {
     try {
