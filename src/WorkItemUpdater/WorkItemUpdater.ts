@@ -108,6 +108,7 @@ function getSettings(): Settings {
     settings.updateAssignedTo = tl.getInput('updateAssignedTo');
     settings.updateAssignedToWith = tl.getInput('updateAssignedToWith');
     settings.assignedTo = tl.getInput('assignedTo');
+    settings.comment = tl.getInput('comment');
     settings.updateFields = tl.getInput('updateFields');
     settings.bypassRules = tl.getBoolInput('bypassRules');
     settings.failTaskIfNoWorkItemsAvailable = tl.getBoolInput('failTaskIfNoWorkItemsAvailable');
@@ -153,6 +154,7 @@ function getSettings(): Settings {
     tl.debug('assignedTo ' + settings.assignedTo);
     tl.debug('addTags ' + settings.addTags);
     tl.debug('updateFields ' + settings.updateFields);
+    tl.debug('comment ' + settings.comment);
     tl.debug('removeTags ' + settings.removeTags);
     tl.debug('bypassRules ' + settings.bypassRules);
     tl.debug('failTaskIfNoWorkItemsAvailable ' + settings.failTaskIfNoWorkItemsAvailable);
