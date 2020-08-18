@@ -324,19 +324,30 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
 
         tl.debug('Start UpdateWorkItem');
 
-        if (document.length === 0) {
+
+        if (document.length === 0 && !settings.comment) {
             // workItemTrackingClient.updateWorkItem fails if there is not patch operation
             console.log('No update for WorkItem ' + workItem.id);
             return false;
         }
 
-        const updatedWorkItem = await workItemTrackingClient.updateWorkItem(
-            undefined,
-            document,
-            workItem.id,
-            undefined,
-            settings.bypassRules);
-        console.log('WorkItem ' + workItem.id + ' updated');
+        if (document.length > 0) {
+            const updatedWorkItem = await workItemTrackingClient.updateWorkItem(
+                undefined,
+                document,
+                workItem.id,
+                undefined,
+                settings.bypassRules);
+            console.log('WorkItem ' + workItem.id + ' updated');
+        }
+        if (settings.comment) {
+            const addCommentToWorkItem = await workItemTrackingClient.addComment(
+                { text: settings.comment },
+                undefined,
+                workItem.id
+            );
+            console.log('WorkItem ' + workItem.id + ' comment added: "' + settings.comment + '"');
+        }
         return true;
     }
     else {

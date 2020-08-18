@@ -189,6 +189,19 @@
             "helpMarkDown": "If there are no workitems found to update, the task will fail."
         },
         {
+            "name": "comment",
+            "type": "multiLine",
+            "label": "Comments to add",
+            "required": false,
+            "defaultValue": "",
+            "properties": {
+                "resizable": "true",
+                "rows": "4",
+                "maxLength": "5000"
+            },
+            "helpMarkDown": "A comment to add to every work item that is updated"
+        },
+        {
             "name": "updateFields",
             "type": "multiLine",
             "label": "Fields to update",
