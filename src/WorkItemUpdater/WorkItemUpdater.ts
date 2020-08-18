@@ -345,7 +345,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
         if (settings.comment) {
             const addCommentToWorkItem = await workItemTrackingClient.addComment(
                 { text: settings.comment },
-                undefined,
+                settings.projectId,
                 workItem.id
             );
             console.log('WorkItem ' + workItem.id + ' comment added: "' + settings.comment + '"');
