@@ -1,5 +1,6 @@
 import tl = require('azure-pipelines-task-lib/task');
 import { Settings } from './settings';
+import * as moment from 'moment'
 import * as vso from 'azure-devops-node-api';
 import { IBuildApi } from 'azure-devops-node-api/BuildApi';
 import { IRequestHandler } from 'azure-devops-node-api/interfaces/common/VsoBaseInterfaces';
@@ -7,7 +8,7 @@ import { WebApi, getHandlerFromToken } from 'azure-devops-node-api/WebApi';
 import { BuildStatus, BuildResult, BuildQueryOrder, Build } from 'azure-devops-node-api/interfaces/BuildInterfaces';
 import { IWorkItemTrackingApi } from 'azure-devops-node-api/WorkItemTrackingApi';
 import { ResourceRef, JsonPatchDocument, JsonPatchOperation, Operation } from 'azure-devops-node-api/interfaces/common/VSSInterfaces';
-import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation, QueryHierarchyItem } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
+import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation, QueryHierarchyItem, FieldType } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
 import { WorkItemQueryResult } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
 import { IReleaseApi } from 'azure-devops-node-api/ReleaseApi';
 import { DeploymentStatus, ReleaseQueryOrder } from 'azure-devops-node-api/interfaces/ReleaseInterfaces';
@@ -319,7 +320,22 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
             updateFields.forEach((updateField) => {
                 const commaIndex = updateField.indexOf(',');
                 if (commaIndex >= 0) {
-                    addPatchOperation('/fields/' + updateField.substring(0, commaIndex), updateField.substring(commaIndex + 1), document);
+                    const fieldName = updateField.substring(0, commaIndex);
+                    let fieldValue = updateField.substring(commaIndex + 1);
+                    const workItemField = workItem.fields[fieldName] as WorkItemField;
+                    if (workItemField) {
+                        if (workItemField.type === FieldType.DateTime) {
+                            // wrap date values with moment in a hope to correct an invalid date
+                            const date = moment(fieldValue);
+                            if (date.isValid()) {
+                                fieldValue = date.format()
+                            } else {
+                                console.log('Skipped updating' + fieldName + ' to ' + fieldValue + ' is not a valid date');
+                            }
+                        }
+                    }
+                    console.log('Updating' + fieldName + ' to ' + fieldValue);
+                    addPatchOperation('/fields/' + fieldName, fieldValue, document);
                 }
             });
         }
