@@ -13,7 +13,7 @@
     "version": {
         "Major": "2",
         "Minor": "3",
-        "Patch": "765"
+        "Patch": "782"
     },
     "demands": [],
     "minimumAgentVersion": "1.91.0",
@@ -187,6 +187,19 @@
             "defaultValue": "false",
             "required": false,
             "helpMarkDown": "If there are no workitems found to update, the task will fail."
+        },
+        {
+            "name": "comment",
+            "type": "multiLine",
+            "label": "Comments to add",
+            "required": false,
+            "defaultValue": "",
+            "properties": {
+                "resizable": "true",
+                "rows": "4",
+                "maxLength": "5000"
+            },
+            "helpMarkDown": "A comment to add to every work item that is updated"
         },
         {
             "name": "updateFields",
