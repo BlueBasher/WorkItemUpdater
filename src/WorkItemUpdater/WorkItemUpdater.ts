@@ -33,6 +33,15 @@ async function main(): Promise<void> {
                 const workItem: WorkItem = await workItemTrackingClient.getWorkItem(parseInt(workItemRef.id), undefined, undefined, WorkItemExpand.Relations);
                 console.log('Found WorkItem: ' + workItem.id);
 
+                const releaseNotes = workItem.fields['Release notes'];
+                if(settings.minimumReleaseNotesLength && releaseNotes){
+                    if(settings.minimumReleaseNotesLength > 0 && settings.minimumReleaseNotesLength > (releaseNotes as string).length) {
+                        tl.setResult(tl.TaskResult.Failed, `Release notes length for workitem '${workItem.id}' is less than the minimum required length of ${settings.minimumReleaseNotesLength} characters.` );
+                        return;
+                    }
+                    tl.debug( `Release notes length for workitem '${workItem.id}' is ${(releaseNotes as string).length}`);
+                }
+
                 switch (settings.updateAssignedToWith) {
                     case 'Creator': {
                         const creator = workItem.fields['System.CreatedBy'];

@@ -226,6 +226,14 @@
                 "maxLength": "5000"
             },
             "helpMarkDown": "Tags to remove from the workitem. Enter a tag per line."
+        },
+        {
+            "name": "minimumReleaseNotesLength",
+            "type": "string",
+            "label": "Fail the task when the minimum release notes length is less",
+            "defaultValue": "50",
+            "required": false,
+            "helpMarkDown": "If a work item has release notes field and does not have the minimum release notes length, the task will fail."
         }
     ],
     "sourceDefinitions": [
