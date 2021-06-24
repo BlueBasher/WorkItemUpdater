@@ -24,4 +24,5 @@ export class Settings {
     public updateFields: string;
     public bypassRules: boolean;
     public failTaskIfNoWorkItemsAvailable: boolean;
+    public minimumReleaseNotesLength: number | null;
 }
