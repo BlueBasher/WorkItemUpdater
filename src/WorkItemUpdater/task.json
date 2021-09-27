@@ -12,8 +12,8 @@
     ],
     "version": {
         "Major": "2",
-        "Minor": "3",
-        "Patch": "782"
+        "Minor": "5",
+        "Patch": "800"
     },
     "demands": [],
     "minimumAgentVersion": "1.91.0",
@@ -156,6 +156,7 @@
             "options": {
                 "Requester": "Requester of the build",
                 "Creator": "Creator of the workitem",
+                "ActivatedBy": "User who started the item",
                 "FixedUser": "Fixed user",
                 "Unassigned": "Unassign the workitem"
             }
