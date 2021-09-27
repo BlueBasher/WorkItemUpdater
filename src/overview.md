@@ -20,6 +20,8 @@ A preview of what the task can do, can be seen in this recording:
 ![settings](img/Settings.png)  
   
 ## Version History
+### 2.5.800
+- Update 'Assigned To' with option for Activated By user
 ### 2.5.793
 - Functionality to add custom list of Fields to update 
 - Functionality to allow to bypass workitem type rules 
