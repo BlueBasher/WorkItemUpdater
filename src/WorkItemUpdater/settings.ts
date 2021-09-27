@@ -21,6 +21,7 @@ export class Settings {
     public assignedTo: string;
     public addTags: string;
     public removeTags: string;
+    public comment: string;
     public updateFields: string;
     public bypassRules: boolean;
     public failTaskIfNoWorkItemsAvailable: boolean;
