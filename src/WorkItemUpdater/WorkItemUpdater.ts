@@ -286,9 +286,13 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
         }
 
         if (settings.addTags || settings.removeTags) {
+            let operation: Operation = Operation.Add;
             const newTags: string[] = [];
 
             const removeTags: string[] = settings.removeTags ? settings.removeTags.split(';') : [];
+            
+            if (removeTags.length > 0) operation = Operation.Replace;
+            
             if (workItem.fields['System.Tags']) {
                 tl.debug('Existing tags: ' + workItem.fields['System.Tags']);
                 workItem.fields['System.Tags'].split(';').forEach((tag: string) => {
@@ -309,7 +313,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
                 }
             });
 
-            addPatchOperation('/fields/System.Tags', newTags.join('; '), document);
+            addPatchOperation('/fields/System.Tags', newTags.join('; '), document, operation);
         }
 
         if (settings.updateFields) {
