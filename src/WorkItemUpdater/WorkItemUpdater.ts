@@ -363,6 +363,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
                 document,
                 workItem.id,
                 undefined,
+				false,
                 settings.bypassRules);
             console.log('WorkItem ' + workItem.id + ' updated');
         }
