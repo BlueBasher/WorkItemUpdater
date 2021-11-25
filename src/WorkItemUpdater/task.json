@@ -263,7 +263,7 @@
         }
     ],
     "execution": {
-        "Node": {
+        "Node10": {
             "target": "WorkItemUpdater.js"
         }
     }

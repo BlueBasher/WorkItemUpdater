@@ -6,9 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "azure-devops-node-api": "^10.1.1",
-    "azure-pipelines-task-lib": "^2.9.5",
-    "moment": "^2.27.0"
+    "azure-devops-node-api": "^11.1.0",
+    "azure-pipelines-task-lib": "^3.1.10",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "@types/node": "^10.12.18",
