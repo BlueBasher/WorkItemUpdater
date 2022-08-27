@@ -20,6 +20,8 @@ A preview of what the task can do, can be seen in this recording:
 ![settings](img/Settings.png)  
   
 ## Version History
+### 2.5.831
+- Modified the inputs 'workItemType', 'workItemState' and 'workItemCurrentState' into plain String inputs instead of PickLists.
 ### 2.5.800
 - Update 'Assigned To' with option for Activated By user
 ### 2.5.793
