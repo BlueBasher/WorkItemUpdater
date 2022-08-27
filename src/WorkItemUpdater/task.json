@@ -47,7 +47,7 @@
             "label": "WorkItem Type",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "The type of workitems to update, e.g. User Story, Task or Bug"
+            "helpMarkDown": "The type of workitems to update, e.g. User Story, Task or Bug. You can use a comma-separated string to supply multiple values."
         },
         {
             "name": "workitemLimit",
