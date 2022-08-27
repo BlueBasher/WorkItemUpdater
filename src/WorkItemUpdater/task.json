@@ -43,16 +43,11 @@
         },
         {
             "name": "workItemType",
-            "type": "pickList",
+            "type": "string",
             "label": "WorkItem Type",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "The type of workitems to update",
-            "properties": {
-                "DisableManageLink": "True",
-                "EditableOptions": "False",
-                "MultiSelectFlatList": "True"
-            }
+            "helpMarkDown": "The type of workitems to update, e.g. User Story, Task or Bug. You can use a comma-separated string to supply multiple values."
         },
         {
             "name": "workitemLimit",
@@ -72,27 +67,19 @@
         },
         {
             "name": "workItemState",
-            "type": "pickList",
+            "type": "string",
             "label": "WorkItem State",
             "defaultValue": "",
             "required": false,
-            "helpMarkDown": "The state to update the workitems to",
-            "properties": {
-                "DisableManageLink": "True"
-            }
+            "helpMarkDown": "The state to update the workitems to"
         },
         {
             "name": "workItemCurrentState",
-            "type": "pickList",
+            "type": "string",
             "label": "Filter by WorkItem Current State",
             "defaultValue": "",
             "required": false,
-            "helpMarkDown": "If defined, only update workitems that currently have this state. Leave empty to update from any state. Separate different valid states with ','",
-            "properties": {
-                "DisableManageLink": "True",
-                "EditableOptions": "False",
-                "MultiSelectFlatList": "True"
-            }
+            "helpMarkDown": "If defined, only update workitems that currently have this state. Leave empty to update from any state. Separate different valid states with ','"
         },
         {
             "name": "workItemKanbanLane",
@@ -242,26 +229,7 @@
             "helpMarkDown": "Tags to remove from the workitem. Enter a tag per line."
         }
     ],
-    "sourceDefinitions": [
-        {
-            "target": "workItemType",
-            "endpoint": "/$(system.teamProject)/_apis/wit/workItemTypes?api-version=1.0",
-            "selector": "jsonpath:$.value[*].name",
-            "authKey": "tfs:teamfoundation"
-        },
-        {
-            "target": "workItemState",
-            "endpoint": "/$(system.teamProject)/_api/_wit/allowedValues?__v=5&fieldId=2",
-            "selector": "jsonpath:$.__wrappedArray[*]",
-            "authKey": "tfs:teamfoundation"
-        },
-        {
-            "target": "workItemCurrentState",
-            "endpoint": "/$(system.teamProject)/_api/_wit/allowedValues?__v=5&fieldId=2",
-            "selector": "jsonpath:$.__wrappedArray[*]",
-            "authKey": "tfs:teamfoundation"
-        }
-    ],
+    "sourceDefinitions": [],
     "execution": {
         "Node10": {
             "target": "WorkItemUpdater.js"
