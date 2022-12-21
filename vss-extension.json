@@ -1,20 +1,26 @@
 {
     "manifestVersion": 1,
     "id": "bluebasher-workitemupdater",
-    "version": "2.3.765",
+    "version": "2.3.766",
     "name": "WorkItem Updater",
-    "scopes": [ "vso.work", "vso.work_write" ],
+    "scopes": [
+        "vso.work",
+        "vso.work_write"
+    ],
     "description": "Update the state of work items linked to a build.",
-    "baseUri": "https://localhost",
-    "publisher": "BlueBasher",
+    "publisher": "bluebasher",
     "public": false,
     "icons": {
-        "default": "img/logo.png"
+        "default": "marketplace/logo.png"
     },
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
         }
+    ],
+    "categories": [
+        "Azure Boards",
+        "Azure Pipelines"
     ],
     "tags": [
         "WorkItem",
@@ -38,9 +44,13 @@
             "uri": "https://github.com/BlueBasher/WorkItemUpdater"
         }
     },
+    "repository": {
+        "type": "git",
+        "uri": "https://github.com/bluebasher/WorkItemUpdater"
+    },
     "content": {
         "details": {
-            "path": "overview.md"
+            "path": "README.md"
         }
     },
     "branding": {
@@ -49,16 +59,12 @@
     },
     "files": [
         {
-
-            "path": "img",
+            "path": "marketplace",
             "addressable": true
         },
         {
-            "path": "WorkItemUpdater"
+            "path": "dist"
         }
-    ],
-    "categories": [
-        "Build and release"
     ],
     "contributions": [
         {
@@ -68,7 +74,7 @@
             ],
             "type": "ms.vss-distributed-task.task",
             "properties": {
-                "name": "WorkItemUpdater"
+                "name": "dist"
             }
         }
     ]

@@ -1,0 +1,115 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: '5.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.7
+        with:
+          useConfigFile: true
+          configFilePath: 'git-version.yml'
+
+      - name: Npm install
+        run: npm install
+
+      - name: Tfx install
+        run: npm install -g tfx-cli
+
+      - name: Update task.json version - Major
+        uses: jossef/action-set-json-field@v2
+        with:
+          file: src/task.json
+          field: version.Major
+          value: ${{ steps.gitversion.outputs.major }}
+
+      - name: Update task.json version - Minor
+        uses: jossef/action-set-json-field@v2
+        with:
+          file: src/task.json
+          field: version.Minor
+          value: ${{ steps.gitversion.outputs.minor }}
+
+      - name: Update task.json version - Patch
+        uses: jossef/action-set-json-field@v2
+        with:
+          file: src/task.json
+          field: version.Patch
+          value: ${{ steps.gitversion.outputs.patch }}
+          
+      - name: Npm compile
+        run: npm run compile
+
+      - name: Tfx Package Test
+        run: "tfx extension create --manifest-globs vss-extension.json --overrides-file configs/test.json --override '{\"version\": \"${{ steps.gitversion.outputs.semVer }}.${{ github.run_number }}\"}' --output-path out"
+
+      - name: Tfx Package Prod
+        if: github.ref == 'refs/heads/main'
+        run: "tfx extension create --manifest-globs vss-extension.json --overrides-file configs/release.json --override '{\"version\": \"${{ steps.gitversion.outputs.semVer }}\"}' --output-path out"
+        
+      - name: Upload Tfx Package
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: tfxpackage
+          path: ./out/
+
+  deployment_test:
+    if: github.ref == 'refs/heads/main'
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Download Tfx Package
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: tfxpackage
+
+      - name: Tfx install
+        run: npm install -g tfx-cli
+      
+      - name: Tfx Package
+        env:
+          AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
+        run: |
+          filename=$(ls bluebasher.bluebasher-workitemupdater-test-*.vsix)
+          tfx extension publish --vsix $filename --auth-type pat --token $AZURE_DEVOPS_PAT
+
+
+  deployment_production:
+    if: github.ref == 'refs/heads/main'
+    needs: [deployment_test]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Download Tfx Package
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: tfxpackage
+
+      - name: Tfx install
+        run: npm install -g tfx-cli
+      
+      - name: Tfx Package
+        env:
+          AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
+        run: |
+          filename=$(ls bluebasher.bluebasher-workitemupdater-*.vsix)
+          tfx extension publish --vsix $filename --auth-type pat --token $AZURE_DEVOPS_PAT
