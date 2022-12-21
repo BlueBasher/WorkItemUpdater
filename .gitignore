@@ -3,8 +3,7 @@
 
 *.vsix
 *.dll
-!src/WorkItemUpdater/**/*.dll
-src/WorkItemUpdater/*.js
+dist/
 
 # User-specific files
 .vscode/
