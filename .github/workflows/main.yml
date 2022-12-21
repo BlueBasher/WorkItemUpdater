@@ -91,7 +91,7 @@ jobs:
         env:
           AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
         run: |
-          filename=$(ls bluebasher.bluebasher-workitemupdater-test-*.vsix)
+          filename=$(ls bluebasher.bluebasher-workitemupdater-testing-*.vsix)
           tfx extension publish --vsix $filename --auth-type pat --token $AZURE_DEVOPS_PAT
 
 
