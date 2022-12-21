@@ -1,0 +1,27 @@
+{
+  "scripts": {
+    "postinstall": "cd src && npm install",
+    "clean": "rimraf ./out/*.vsix && rimraf ./dist",
+    "copyToDist": "copyfiles -f ./src/task.json ./dist && copyfiles -f ./src/package*.json ./dist",
+    "compile": "npm run copyToDist && tsc --project . --outDir dist && (cd dist && npm ci --production)",
+    "lint": "tslint -p tsconfig.json -c tslint.json",
+    "build": "npm run clean && npm run lint && npm run compile",
+    "package": "npm run build && tfx extension create --manifest-globs vss-extension.json --overrides-file configs/release.json --output-path out",
+    "package:dev": "npm run build && tfx extension create --manifest-globs vss-extension.json --overrides-file configs/dev.json --output-path out",
+    "publish": "npm run build && tfx extension publish --manifest-globs vss-extension.json --overrides-file configs/release.json --output-path out",
+    "publish:dev": "npm run build && tfx extension publish --manifest-globs vss-extension.json --overrides-file configs/dev.json --output-path out",
+    "gallery-publish": "tfx extension publish --rev-version"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.18",
+    "@types/q": "1.5.0",
+    "copyfiles": "2.4.1",
+    "tfx-cli": "^0.9.3",
+    "tslint": "^6.1.3",
+    "typescript": "4.4.4",
+    "rimraf": "^3.0.2"
+  },
+  "name": "vstsexttask",
+  "private": true,
+  "version": "0.0.1"
+}

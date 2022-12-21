@@ -13,7 +13,7 @@
     "version": {
         "Major": "2",
         "Minor": "5",
-        "Patch": "800"
+        "Patch": "807"
     },
     "demands": [],
     "minimumAgentVersion": "1.91.0",
@@ -43,7 +43,7 @@
         },
         {
             "name": "workItemType",
-            "type": "string",
+            "type": "pickList",
             "label": "WorkItem Type",
             "defaultValue": "",
             "required": true,
@@ -229,7 +229,14 @@
             "helpMarkDown": "Tags to remove from the workitem. Enter a tag per line."
         }
     ],
-    "sourceDefinitions": [],
+    "sourceDefinitions": [
+        {
+            "target": "workItemType",
+            "endpoint": "/$(system.teamProject)/_apis/wit/workItemTypes?api-version=1.0",
+            "selector": "jsonpath:$.value[*].name",
+            "authKey": "tfs:teamfoundation"
+        }        
+    ],
     "execution": {
         "Node10": {
             "target": "WorkItemUpdater.js"

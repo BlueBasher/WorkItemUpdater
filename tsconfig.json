@@ -6,7 +6,6 @@
         "module": "commonjs"
     },
     "exclude": [
-    "node_modules",
-    "WorkItemUpdater/node_modules"
+    "node_modules"
   ]
 }

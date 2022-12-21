@@ -1,13 +1,11 @@
 import tl = require('azure-pipelines-task-lib/task');
 import { Settings } from './settings';
-import * as moment from 'moment'
-import * as vso from 'azure-devops-node-api';
+import * as moment from 'moment';
 import { IBuildApi } from 'azure-devops-node-api/BuildApi';
 import { IRequestHandler } from 'azure-devops-node-api/interfaces/common/VsoBaseInterfaces';
 import { WebApi, getHandlerFromToken } from 'azure-devops-node-api/WebApi';
-import { BuildStatus, BuildResult, BuildQueryOrder, Build } from 'azure-devops-node-api/interfaces/BuildInterfaces';
 import { IWorkItemTrackingApi } from 'azure-devops-node-api/WorkItemTrackingApi';
-import { ResourceRef, JsonPatchDocument, JsonPatchOperation, Operation } from 'azure-devops-node-api/interfaces/common/VSSInterfaces';
+import { ResourceRef, JsonPatchOperation, Operation } from 'azure-devops-node-api/interfaces/common/VSSInterfaces';
 import { WorkItemExpand, WorkItem, WorkItemField, WorkItemRelation, QueryHierarchyItem, FieldType } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
 import { WorkItemQueryResult } from 'azure-devops-node-api/interfaces/WorkItemTrackingInterfaces';
 import { IReleaseApi } from 'azure-devops-node-api/ReleaseApi';
@@ -297,9 +295,9 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
             const newTags: string[] = [];
 
             const removeTags: string[] = settings.removeTags ? settings.removeTags.split(';') : [];
-            
+
             if (removeTags.length > 0) operation = Operation.Replace;
-            
+
             if (workItem.fields['System.Tags']) {
                 tl.debug('Existing tags: ' + workItem.fields['System.Tags']);
                 workItem.fields['System.Tags'].split(';').forEach((tag: string) => {
@@ -336,7 +334,7 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
                             // wrap date values with moment in a hope to correct an invalid date
                             const date = moment(fieldValue);
                             if (date.isValid()) {
-                                fieldValue = date.format()
+                                fieldValue = date.format();
                             } else {
                                 console.log('Skipped updating' + fieldName + ' to ' + fieldValue + ' is not a valid date');
                             }
@@ -363,8 +361,9 @@ async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, work
                 document,
                 workItem.id,
                 undefined,
-				false,
+                false,
                 settings.bypassRules);
+
             console.log('WorkItem ' + workItem.id + ' updated');
         }
         if (settings.comment) {
