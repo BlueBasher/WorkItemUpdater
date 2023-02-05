@@ -55,7 +55,7 @@
             "label": "WorkItem Limit",
             "defaultValue": "50",
             "required": false,
-            "helpMarkDown": "The number of workitems to update"
+            "helpMarkDown": "The number of workitems to update."
         },
         {
             "name": "allWorkItemsSinceLastRelease",
