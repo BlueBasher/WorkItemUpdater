@@ -1,10 +1,2 @@
 next-version: 3.0
-mode: ContinuousDelivery
-branches:
-  main:
-    increment: Patch
-    prevent-increment-of-merged-branch-version: true
-    tag: ''
-ignore:
-  sha: []
-merge-message-formats: {}
+mode: mainline
