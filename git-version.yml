@@ -1,2 +1,5 @@
 next-version: 3.0
 mode: ContinuousDeployment
+branches:
+  main:
+    tag: ''
