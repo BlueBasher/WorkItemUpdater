@@ -59,11 +59,11 @@ jobs:
         run: npm run compile
 
       - name: Tfx Package Test
-        run: "tfx extension create --manifest-globs vss-extension.json --overrides-file configs/test.json --override '{\"version\": \"${{ steps.gitversion.outputs.semVer }}.${{ github.run_number }}\"}' --output-path out"
+        run: "tfx extension create --manifest-globs vss-extension.json --overrides-file configs/test.json --override '{\"version\": \"${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.commitsSinceVersionSource }}.${{ github.run_number }}\"}' --output-path out"
 
       - name: Tfx Package Prod
         if: github.ref == 'refs/heads/main'
-        run: "tfx extension create --manifest-globs vss-extension.json --overrides-file configs/release.json --override '{\"version\": \"${{ steps.gitversion.outputs.semVer }}\"}' --output-path out"
+        run: "tfx extension create --manifest-globs vss-extension.json --overrides-file configs/release.json --override '{\"version\": \"${{ steps.gitversion.outputs.major }}.${{ steps.gitversion.outputs.minor }}.${{ steps.gitversion.outputs.commitsSinceVersionSource }}\"}' --output-path out"
         
       - name: Upload Tfx Package
         uses: actions/upload-artifact@v3.1.0
