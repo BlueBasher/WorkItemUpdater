@@ -34,7 +34,7 @@
         },
         {
             "name": "workitemsSourceQuery",
-            "type": "string",
+            "type": "querycontrol",
             "label": "Query",
             "defaultValue": "",
             "required": true,
