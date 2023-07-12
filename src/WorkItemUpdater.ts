@@ -167,58 +167,73 @@ function getSettings(): Settings {
 
 async function getWorkItemsRefs(vstsWebApi: WebApi, workItemTrackingClient: IWorkItemTrackingApi, settings: Settings): Promise<ResourceRef[]> {
     if (settings.workitemsSource === 'Build') {
-        if (settings.releaseId && settings.allWorkItemsSinceLastRelease) {
-            console.log('Using Release as WorkItem Source');
-            const releaseClient: IReleaseApi = await vstsWebApi.getReleaseApi();
-            const deployments = await releaseClient.getDeployments(settings.projectId, settings.definitionId, settings.definitionEnvironmentId, undefined, undefined, undefined, DeploymentStatus.Succeeded, undefined, undefined, ReleaseQueryOrder.Descending, 1);
-            if (deployments.length > 0) {
-                const baseReleaseId = deployments[0].release.id;
-                tl.debug('Using Release ' + baseReleaseId + ' as BaseRelease for ' + settings.releaseId);
-                const releaseWorkItemRefs = await releaseClient.getReleaseWorkItemsRefs(settings.projectId, settings.releaseId, baseReleaseId);
-                const result: ResourceRef[] = [];
-                releaseWorkItemRefs.forEach((releaseWorkItem) => {
-                    result.push({
-                        id: releaseWorkItem.id.toString(),
-                        url: releaseWorkItem.url
-                    });
-                });
-                return result;
-            }
-        }
-
-        console.log('Using Build as WorkItem Source');
-        const buildClient: IBuildApi = await vstsWebApi.getBuildApi();
-        const workItemRefs: ResourceRef[] = await buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId, settings.workitemLimit);
-        return workItemRefs;
+        return await getBuildOrReleaseWorkItemsRefs(vstsWebApi, settings);
     }
     else if (settings.workitemsSource === 'Query') {
-        console.log('Using Query as WorkItem Source');
-        const result: ResourceRef[] = [];
-        const query: QueryHierarchyItem = await workItemTrackingClient.getQuery(settings.projectId, settings.workitemsSourceQuery);
-        if (query) {
-            tl.debug('Found queryId ' + query.id + ' from QueryName ' + settings.workitemsSourceQuery);
-            const queryResult: WorkItemQueryResult = await workItemTrackingClient.queryById(
-                query.id,
-                {
-                    project: undefined,
-                    projectId: settings.projectId,
-                    team: undefined,
-                    teamId: undefined
-                });
-            queryResult.workItems.forEach((workItem) => {
-                result.push({
-                    id: workItem.id.toString(),
-                    url: workItem.url
-                });
-            });
-        }
-        else {
-            tl.warning('Could not find query ' + settings.workitemsSourceQuery);
-        }
-        return result;
+        return await getQueryWorkItemsRefs(workItemTrackingClient, settings);
+    } else if (settings.workitemsSource === 'BuildAndQuery') {
+        const buildWorkItemsRefs = await getBuildOrReleaseWorkItemsRefs(vstsWebApi, settings);
+        const queryWorkItemsRefs = await getQueryWorkItemsRefs(workItemTrackingClient, settings);
+
+        // return an intersection of both arrays
+        const buildWorkItemsSet = new Set(buildWorkItemsRefs.map(item => item.id));
+        return queryWorkItemsRefs.filter(item => buildWorkItemsSet.has(item.id));
     }
 
     return undefined;
+}
+
+async function getBuildOrReleaseWorkItemsRefs(vstsWebApi: WebApi, settings: Settings): Promise<ResourceRef[]> {
+    if (settings.releaseId && settings.allWorkItemsSinceLastRelease) {
+        console.log('Using Release as WorkItem Source');
+        const releaseClient: IReleaseApi = await vstsWebApi.getReleaseApi();
+        const deployments = await releaseClient.getDeployments(settings.projectId, settings.definitionId, settings.definitionEnvironmentId, undefined, undefined, undefined, DeploymentStatus.Succeeded, undefined, undefined, ReleaseQueryOrder.Descending, 1);
+        if (deployments.length > 0) {
+            const baseReleaseId = deployments[0].release.id;
+            tl.debug('Using Release ' + baseReleaseId + ' as BaseRelease for ' + settings.releaseId);
+            const releaseWorkItemRefs = await releaseClient.getReleaseWorkItemsRefs(settings.projectId, settings.releaseId, baseReleaseId);
+            const result: ResourceRef[] = [];
+            releaseWorkItemRefs.forEach((releaseWorkItem) => {
+                result.push({
+                    id: releaseWorkItem.id.toString(),
+                    url: releaseWorkItem.url
+                });
+            });
+            return result;
+        }
+    }
+
+    console.log('Using Build as WorkItem Source');
+    const buildClient: IBuildApi = await vstsWebApi.getBuildApi();
+    const workItemRefs: ResourceRef[] = await buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId, settings.workitemLimit);
+    return workItemRefs;
+}
+
+async function getQueryWorkItemsRefs(workItemTrackingClient: IWorkItemTrackingApi, settings: Settings): Promise<ResourceRef[]> {
+    console.log('Using Query as WorkItem Source');
+    const result: ResourceRef[] = [];
+    const query: QueryHierarchyItem = await workItemTrackingClient.getQuery(settings.projectId, settings.workitemsSourceQuery);
+    if (query) {
+        tl.debug('Found queryId ' + query.id + ' from QueryName ' + settings.workitemsSourceQuery);
+        const queryResult: WorkItemQueryResult = await workItemTrackingClient.queryById(
+            query.id,
+            {
+                project: undefined,
+                projectId: settings.projectId,
+                team: undefined,
+                teamId: undefined
+            });
+        queryResult.workItems.forEach((workItem) => {
+            result.push({
+                id: workItem.id.toString(),
+                url: workItem.url
+            });
+        });
+    }
+    else {
+        tl.warning('Could not find query ' + settings.workitemsSourceQuery);
+    }
+    return result;
 }
 
 async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, workItem: WorkItem, settings: Settings): Promise<boolean> {
