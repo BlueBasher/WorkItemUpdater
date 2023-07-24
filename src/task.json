@@ -29,7 +29,8 @@
             "helpMarkDown": "The source of the workitems to update.",
             "options": {
                 "Build": "WorkItems linked to the Build/Release",
-                "Query": "Query"
+                "Query": "Query",
+                "BuildAndQuery": "WorkItems linked to the Build/Release and a Query"
             }
         },
         {
@@ -38,7 +39,7 @@
             "label": "Query",
             "defaultValue": "",
             "required": true,
-            "visibleRule": "workitemsSource == Query",
+            "visibleRule": "workitemsSource == Query || workitemsSource == BuildAndQuery",
             "helpMarkDown": "The query to use as the workitem source."
         },
         {
