@@ -53,7 +53,7 @@ jobs:
         with:
           file: src/task.json
           field: version.Patch
-          value: ${{ steps.gitversion.outputs.patch }}
+          value: ${{ steps.gitversion.outputs.commitsSinceVersionSource }}
           
       - name: Npm compile
         run: npm run compile
