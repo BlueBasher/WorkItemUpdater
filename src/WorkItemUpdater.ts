@@ -184,29 +184,47 @@ async function getWorkItemsRefs(vstsWebApi: WebApi, workItemTrackingClient: IWor
 }
 
 async function getBuildOrReleaseWorkItemsRefs(vstsWebApi: WebApi, settings: Settings): Promise<ResourceRef[]> {
-    if (settings.releaseId && settings.allWorkItemsSinceLastRelease) {
+    const buildClient: IBuildApi = await vstsWebApi.getBuildApi();
+    let workItemRefs: ResourceRef[] = [];
+
+    if (settings.releaseId) {
         console.log('Using Release as WorkItem Source');
         const releaseClient: IReleaseApi = await vstsWebApi.getReleaseApi();
-        const deployments = await releaseClient.getDeployments(settings.projectId, settings.definitionId, settings.definitionEnvironmentId, undefined, undefined, undefined, DeploymentStatus.Succeeded, undefined, undefined, ReleaseQueryOrder.Descending, 1);
-        if (deployments.length > 0) {
-            const baseReleaseId = deployments[0].release.id;
+        const currentRelease = await releaseClient.getRelease(settings.projectId, settings.releaseId);
+
+        const baseDeployments = await releaseClient.getDeployments(settings.projectId, settings.definitionId, settings.definitionEnvironmentId, undefined, undefined, undefined, DeploymentStatus.Succeeded, undefined, undefined, ReleaseQueryOrder.Descending, 1);
+        if (baseDeployments.length > 0 && settings.allWorkItemsSinceLastRelease) {
+            const baseReleaseId = Number(baseDeployments[0].release.id);
             tl.debug('Using Release ' + baseReleaseId + ' as BaseRelease for ' + settings.releaseId);
-            const releaseWorkItemRefs = await releaseClient.getReleaseWorkItemsRefs(settings.projectId, settings.releaseId, baseReleaseId);
-            const result: ResourceRef[] = [];
-            releaseWorkItemRefs.forEach((releaseWorkItem) => {
-                result.push({
-                    id: releaseWorkItem.id.toString(),
-                    url: releaseWorkItem.url
-                });
-            });
-            return result;
+
+            const baseRelease = await releaseClient.getRelease(settings.projectId, baseReleaseId);
+
+            for (const currentArtifact of currentRelease.artifacts) {
+                const baseArtifact = baseRelease.artifacts.find((artifact) => { return artifact.sourceId === currentArtifact.sourceId; });
+
+                const releaseWorkItemRefs = await buildClient.getWorkItemsBetweenBuilds(settings.projectId, Number(baseArtifact.definitionReference.version.id), Number(currentArtifact.definitionReference.version.id), settings.workitemLimit);
+                pushWorkItemsRefs(workItemRefs, releaseWorkItemRefs);
+            }
+        } else {
+            for (const currentArtifact of currentRelease.artifacts) {
+                buildClient.getBuildWorkItemsRefs(settings.projectId, Number(currentArtifact.definitionReference.version.id), settings.workitemLimit);
+            }
         }
+        return workItemRefs;
     }
 
     console.log('Using Build as WorkItem Source');
-    const buildClient: IBuildApi = await vstsWebApi.getBuildApi();
-    const workItemRefs: ResourceRef[] = await buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId, settings.workitemLimit);
+    workItemRefs = await buildClient.getBuildWorkItemsRefs(settings.projectId, settings.buildId, settings.workitemLimit);
     return workItemRefs;
+}
+
+function pushWorkItemsRefs(workItemRefs: ResourceRef[], workItemRefsToAdd: ResourceRef[]) {
+    workItemRefsToAdd.forEach((workItemRef: ResourceRef) => {
+        workItemRefs.push({
+            id: workItemRef.id.toString(),
+            url: workItemRef.url
+        });
+    });
 }
 
 async function getQueryWorkItemsRefs(workItemTrackingClient: IWorkItemTrackingApi, settings: Settings): Promise<ResourceRef[]> {
