@@ -185,7 +185,7 @@ async function getWorkItemsRefs(vstsWebApi: WebApi, workItemTrackingClient: IWor
 
 async function getBuildOrReleaseWorkItemsRefs(vstsWebApi: WebApi, settings: Settings): Promise<ResourceRef[]> {
     const buildClient: IBuildApi = await vstsWebApi.getBuildApi();
-    var workItemRefs: ResourceRef[] = [];
+    let workItemRefs: ResourceRef[] = [];
 
     if (settings.releaseId) {
         console.log('Using Release as WorkItem Source');
@@ -207,7 +207,7 @@ async function getBuildOrReleaseWorkItemsRefs(vstsWebApi: WebApi, settings: Sett
             }
         } else {
             for (const currentArtifact of currentRelease.artifacts) {
-                buildClient.getBuildWorkItemsRefs(settings.projectId, Number(currentArtifact.definitionReference.version.id), settings.workitemLimit)
+                buildClient.getBuildWorkItemsRefs(settings.projectId, Number(currentArtifact.definitionReference.version.id), settings.workitemLimit);
             }
         }
         return workItemRefs;
