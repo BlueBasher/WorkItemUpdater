@@ -207,7 +207,8 @@ async function getBuildOrReleaseWorkItemsRefs(vstsWebApi: WebApi, settings: Sett
             }
         } else {
             for (const currentArtifact of currentRelease.artifacts) {
-                buildClient.getBuildWorkItemsRefs(settings.projectId, Number(currentArtifact.definitionReference.version.id), settings.workitemLimit);
+                const releaseWorkItemRefs = await buildClient.getBuildWorkItemsRefs(settings.projectId, Number(currentArtifact.definitionReference.version.id), settings.workitemLimit);
+                pushWorkItemsRefs(workItemRefs, releaseWorkItemRefs);
             }
         }
         return workItemRefs;
