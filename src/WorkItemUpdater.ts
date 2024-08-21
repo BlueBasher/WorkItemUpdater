@@ -220,6 +220,9 @@ async function getBuildOrReleaseWorkItemsRefs(vstsWebApi: WebApi, settings: Sett
 }
 
 function pushWorkItemsRefs(workItemRefs: ResourceRef[], workItemRefsToAdd: ResourceRef[]) {
+    if (typeof workItemRefsToAdd == "undefined") {
+        workItemRefsToAdd = [];
+    } 
     workItemRefsToAdd.forEach((workItemRef: ResourceRef) => {
         workItemRefs.push({
             id: workItemRef.id.toString(),
