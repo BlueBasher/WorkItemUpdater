@@ -238,8 +238,8 @@ async function getQueryWorkItemsRefs(workItemTrackingClient: IWorkItemTrackingAp
 
 async function updateWorkItem(workItemTrackingClient: IWorkItemTrackingApi, workItem: WorkItem, settings: Settings): Promise<boolean> {
     tl.debug('Updating  WorkItem: ' + workItem.id);
-    if (settings.workItemType.split(',').indexOf(workItem.fields['System.WorkItemType']) >= 0) {
-        if (settings.workItemCurrentState && settings.workItemCurrentState !== '' && settings.workItemCurrentState.split(',').indexOf(workItem.fields['System.State']) === -1) {
+    if (settings.workItemType.split(',').map(s => s.trim()).indexOf(workItem.fields['System.WorkItemType']) >= 0) {
+        if (settings.workItemCurrentState && settings.workItemCurrentState !== '' && settings.workItemCurrentState.split(',').map(s => s.trim()).indexOf(workItem.fields['System.State']) === -1) {
             console.log('Skipped WorkItem: ' + workItem.id + ' State: "' + workItem.fields['System.State'] + '" => Only updating if state in "' + settings.workItemCurrentState) + '"';
             return false;
         }
