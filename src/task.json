@@ -12,8 +12,8 @@
     ],
     "version": {
         "Major": "2",
-        "Minor": "5",
-        "Patch": "808"
+        "Minor": "6",
+        "Patch": "0"
     },
     "demands": [],
     "minimumAgentVersion": "1.91.0",
@@ -232,7 +232,7 @@
     ],
     "sourceDefinitions": [],
     "execution": {
-        "Node10": {
+        "Node16": {
             "target": "WorkItemUpdater.js"
         }
     }
