@@ -232,7 +232,7 @@
     ],
     "sourceDefinitions": [],
     "execution": {
-        "Node20": {
+        "Node18": {
             "target": "WorkItemUpdater.js"
         }
     }
