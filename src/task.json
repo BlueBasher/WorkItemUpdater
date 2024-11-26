@@ -232,8 +232,17 @@
     ],
     "sourceDefinitions": [],
     "execution": {
-        "Node18": {
-            "target": "WorkItemUpdater.js"
+        "Node10": {
+            "target": "WorkItemUpdater.js",
+            "argumentFormat": ""
+        },
+        "Node16": {
+            "target": "WorkItemUpdater.js",
+            "argumentFormat": ""
+        },
+        "Node20_1": {
+            "target": "WorkItemUpdater.js",
+            "argumentFormat": ""
         }
     }
 }
