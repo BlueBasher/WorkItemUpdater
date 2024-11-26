@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "azure-devops-node-api": "^11.1.0",
-    "azure-pipelines-task-lib": "^3.1.10",
+    "azure-pipelines-task-lib": "^4.17.3",
     "moment": "^2.29.1"
   }
 }
